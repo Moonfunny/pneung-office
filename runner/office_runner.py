@@ -58,7 +58,7 @@ PALETTE = ["#e5534b", "#f0883e", "#e3b341", "#3fb950", "#39c5cf", "#58a6ff", "#a
 
 # ---------- เกณฑ์ (เหมือนปลั๊กอินเดิม) ----------
 TH = {
-    "uptime_slow_ms": 1500,
+    "uptime_slow_ms": 2000,
     "ssl_warn_days": 14, "ssl_down_days": 3,
     "speed_warn_s": 3.0, "speed_down_s": 6.0,
     "update_warn": 5,
