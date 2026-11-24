@@ -1,0 +1,138 @@
+/* P'Neung Office — สไตล์หน้าออฟฟิศ (scoped ใต้ #pno-app) */
+.pno-wrap{margin:10px 20px 0 2px}
+#pno-app{border-radius:12px;min-height:400px}
+#pno-app h1,#pno-app h2,#pno-app h3{color:var(--text);padding:0}
+#pno-app button{line-height:normal;min-height:0}
+#pno-app .updated-at{color:var(--muted);font-size:12px;margin-left:auto;align-self:center}
+#pno-app{--bg:#0d1117;--panel:#161b22;--panel2:#1c2128;--line:#30363d;--text:#e6edf3;--muted:#8b949e;--ok:#3fb950;--warn:#e3b341;--down:#f85149;--wait:#8b949e}
+#pno-app, #pno-app *{box-sizing:border-box}
+#pno-app{margin:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px}
+#pno-app .pno-inner{max-width:1380px;margin:0 auto;padding:24px 16px 40px}
+#pno-app h1{font-family:Kanit,sans-serif;font-weight:600;font-size:28px;margin:0 0 6px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#pno-app .sample{font-family:'IBM Plex Sans Thai',sans-serif;font-size:12px;font-weight:600;background:#3d2e00;color:var(--warn);border:1px solid #6b5200;padding:2px 10px;border-radius:999px}
+#pno-app .sub{color:var(--muted);margin:0 0 14px;line-height:1.65;max-width:860px}
+#pno-app .rainbow{height:6px;border-radius:3px;display:flex;overflow:hidden;margin-bottom:16px}
+#pno-app .rainbow span{flex:1}
+#pno-app .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;margin-bottom:14px}
+#pno-app .stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--text);font:inherit}
+#pno-app .stat b{font-family:Kanit,sans-serif;font-size:26px;line-height:1}
+#pno-app .stat:hover{border-color:#484f58}
+#pno-app .stat.active{border-color:#8b949e;background:#21262d}
+#pno-app .stat[data-f=ok] b{color:var(--ok)}
+#pno-app .stat[data-f=warn] b{color:var(--warn)}
+#pno-app .stat[data-f=down] b{color:var(--down)}
+#pno-app .stat[data-f=wait] b{color:var(--muted)}
+#pno-app .spacer{flex:1}
+#pno-app .meet{background:#238636;border:1px solid #2ea043;color:#fff;font:inherit;font-weight:600;border-radius:8px;padding:10px 18px;cursor:pointer}
+#pno-app .meet:hover{background:#2ea043}
+#pno-app .meet.on{background:#6e7681;border-color:#8b949e}
+#pno-app .alert{background:#2b2111;border-left:4px solid var(--warn);border-radius:6px;padding:12px 16px;margin-bottom:16px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+#pno-app .alert h2{font-family:Kanit,sans-serif;font-weight:500;color:var(--warn);font-size:20px;margin:0;white-space:nowrap}
+#pno-app .alert .list{display:flex;flex-direction:column;gap:6px;flex:1;min-width:260px}
+#pno-app .issue{background:none;border:0;color:var(--text);font:inherit;text-align:left;padding:0;cursor:pointer;line-height:1.5}
+#pno-app .issue:hover .who{text-decoration:underline}
+#pno-app .issue .who{font-weight:600}
+#pno-app .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:1px}
+#pno-app .dot.ok{background:var(--ok)}
+#pno-app .dot.warn{background:var(--warn)}
+#pno-app .dot.down{background:var(--down)}
+#pno-app .dot.wait{background:var(--wait)}
+#pno-app .mapOuter{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;overflow-x:auto}
+#pno-app .sizer{position:relative}
+#pno-app .map{position:absolute;left:0;top:0;width:1320px;height:950px;transform-origin:0 0;background:#dfe3e8;overflow:hidden;border-radius:4px;user-select:none}
+#pno-app .map .floorline{position:absolute;background:repeating-linear-gradient(90deg,#d3d8de 0 20px,transparent 20px 40px);height:4px}
+#pno-app .wall{position:absolute;left:0;top:0;width:1320px;height:132px;background:#f4f5f7;border-bottom:8px solid #c9cdd3}
+#pno-app .window{position:absolute;top:14px;width:420px;height:104px;border:6px solid #1f2328;overflow:hidden;background:#8ec5ff}
+#pno-app .window::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:6px;margin-left:-3px;background:#1f2328}
+#pno-app .bld{position:absolute;bottom:0}
+#pno-app .bld i{position:absolute;width:4px;height:5px}
+#pno-app .sign{position:absolute;left:520px;top:30px;width:280px;height:70px;background:#1f2328;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;border-bottom:6px solid #000}
+#pno-app .sign b{font-family:Kanit,sans-serif;font-size:20px;letter-spacing:1px}
+#pno-app .sign span{font-size:12px;color:#8b949e}
+#pno-app .sign .strip{position:absolute;left:0;right:0;bottom:-12px;height:6px;display:flex}
+#pno-app .sign .strip i{flex:1}
+#pno-app .shelf{position:absolute;top:58px;width:46px;height:40px;background:#30363d;border-bottom:4px solid #1f2328}
+#pno-app .shelf::before{content:"";position:absolute;inset:5px 5px 22px;background:repeating-linear-gradient(90deg,#e6edf3 0 6px,#30363d 6px 9px)}
+#pno-app .shelf::after{content:"";position:absolute;inset:22px 5px 5px;background:repeating-linear-gradient(90deg,#58a6ff 0 6px,#30363d 6px 9px)}
+#pno-app .room{position:absolute;width:400px;height:230px;background-color:#f6f7f9;background-image:conic-gradient(#eceef1 25%,transparent 0 50%,#eceef1 0 75%,transparent 0);background-size:40px 40px;border:3px solid #ced3d9;border-top-width:5px}
+#pno-app .room.meeting{background-color:#59606c;background-image:conic-gradient(#525965 25%,transparent 0 50%,#525965 0 75%,transparent 0);border-color:#3d434d}
+#pno-app .label{position:absolute;left:8px;top:-15px;background:#1f2328;color:#fff;font-family:Kanit,sans-serif;font-weight:500;font-size:14px;padding:3px 10px;border-left:5px solid;cursor:pointer;z-index:2000;white-space:nowrap}
+#pno-app .label:hover{background:#000}
+#pno-app .label .dot{margin:0 0 0 8px;width:8px;height:8px}
+#pno-app .desk{position:absolute;width:58px;height:22px;background:#2d333b;border-bottom:4px solid #1c2128}
+#pno-app .monitor{position:absolute;width:30px;height:21px;left:14px;top:-19px;background:#1c2128;padding:3px}
+#pno-app .monitor i{display:block;height:100%;background:#3b82f6}
+#pno-app .monitor.warn i{background:var(--warn);animation:pno-blink 1s steps(2) infinite}
+#pno-app .monitor.down i{background:var(--down);animation:pno-blink .5s steps(2) infinite}
+#pno-app .monitor.wait i{background:#484f58}
+#pno-app .rug{position:absolute;border:2px dashed;opacity:.55}
+#pno-app .plant{position:absolute;width:16px;height:20px}
+#pno-app .plant::before{content:"";position:absolute;left:0;top:0;width:16px;height:12px;background:#3fa34d;box-shadow:4px -4px 0 -1px #2e7d32}
+#pno-app .plant::after{content:"";position:absolute;left:3px;bottom:0;width:10px;height:8px;background:#8b5a2b}
+#pno-app .table{position:absolute;background:#1f2328;border-bottom:6px solid #000;border-radius:3px}
+#pno-app .table span{position:absolute;inset:8px 12px;border:2px solid #30363d;color:#8b949e;font-size:11px;display:flex;align-items:center;justify-content:center}
+#pno-app .coffee{position:absolute;width:26px;height:38px;background:#c9d1d9;border-bottom:4px solid #6e7681}
+#pno-app .coffee::before{content:"";position:absolute;left:5px;top:6px;width:16px;height:8px;background:#1f2328}
+#pno-app .coffee::after{content:"";position:absolute;left:9px;bottom:4px;width:8px;height:8px;background:#fff;border:1px solid #6e7681}
+#pno-app .coffeeLabel{position:absolute;font-size:11px;color:#c9d1d9;white-space:nowrap}
+#pno-app .agent{position:absolute;width:24px;height:36px;cursor:pointer;transition-property:left,top;transition-timing-function:linear}
+#pno-app .agent .body{width:24px;height:36px}
+#pno-app .agent .body.flip{transform:scaleX(-1)}
+#pno-app .agent svg{display:block}
+#pno-app .agent.walking svg{animation:pno-bob .28s steps(2) infinite}
+#pno-app .agent.typing svg{animation:pno-typing 1.4s steps(2) infinite}
+#pno-app .agent.down.typing svg{animation:pno-shake .4s infinite}
+#pno-app .agent.sleep svg{opacity:.8}
+#pno-app .agent .tag{position:absolute;top:38px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#1f2328;color:#fff;font-size:11px;padding:1px 6px;display:none;pointer-events:none}
+#pno-app .agent:hover .tag,#pno-app .agent.showtag .tag,#pno-app .agent.focus .tag{display:block}
+#pno-app .agent.warn .tag{background:#9a6700}
+#pno-app .agent.down .tag{background:#b62324}
+#pno-app .agent .mark{position:absolute;top:-22px;left:6px;width:12px;height:17px;font-weight:700;font-size:12px;text-align:center;line-height:17px;color:#000;display:none;animation:pno-float 1s ease-in-out infinite}
+#pno-app .agent.warn .mark{display:block;background:var(--warn)}
+#pno-app .agent.down .mark{display:block;background:var(--down);color:#fff}
+#pno-app .agent.meetingmode .mark{display:none}
+#pno-app .agent.meetingmode:not(:hover):not(.focus) .tag{display:none}
+#pno-app .agent .z{position:absolute;top:-16px;left:18px;font-weight:700;color:#6e7681;font-size:12px;display:none;animation:pno-zz 2s ease-in-out infinite}
+#pno-app .agent.sleep .z{display:block}
+#pno-app .agent.focus{filter:drop-shadow(0 0 3px #ffd33d) drop-shadow(0 0 6px #ffd33d)}
+#pno-app .agent.dim{opacity:.18}
+#pno-app .bubble{position:absolute;bottom:44px;left:50%;transform:translateX(-50%);background:#fff;color:#1f2328;border:2px solid #1f2328;font-size:12px;padding:3px 8px;white-space:nowrap;border-radius:4px;pointer-events:none;animation:pno-pop .18s ease-out}
+#pno-app .bubble::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-5px;border:5px solid transparent;border-top-color:#1f2328;border-bottom:0}
+#pno-app .bubble.warn{background:#fff8c5}
+#pno-app .bubble.down{background:#ffebe9}
+@keyframes pno-bob{50%{transform:translateY(-2px)}}
+@keyframes pno-typing{50%{transform:translateY(1px)}}
+@keyframes pno-shake{25%{transform:translateX(-1px)}75%{transform:translateX(1px)}}
+@keyframes pno-float{50%{transform:translateY(-3px)}}
+@keyframes pno-zz{0%{opacity:0;transform:translate(0,4px)}50%{opacity:1}100%{opacity:0;transform:translate(6px,-8px)}}
+@keyframes pno-blink{50%{opacity:.45}}
+@keyframes pno-pop{from{transform:translateX(-50%) scale(.6);opacity:0}}
+#pno-app .hint{color:var(--muted);font-size:13px;margin:10px 4px 0}
+#pno-app .panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+@media (max-width:860px){#pno-app .panels{grid-template-columns:1fr}}
+#pno-app .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-height:120px}
+#pno-app .card h3{font-family:Kanit,sans-serif;font-weight:500;font-size:18px;margin:0 0 10px}
+#pno-app .card .empty{color:var(--muted)}
+#pno-app .dhead{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+#pno-app .avatar{background:#f6f7f9;border-radius:8px;padding:8px 12px}
+#pno-app .dhead .nm{font-family:Kanit,sans-serif;font-size:20px}
+#pno-app .dhead .st{font-size:13px;color:var(--muted)}
+#pno-app .chip{display:inline-block;font-size:12px;font-weight:600;padding:1px 9px;border-radius:999px;margin-left:6px;vertical-align:2px}
+#pno-app .chip.ok{background:#12261e;color:var(--ok)}
+#pno-app .chip.warn{background:#3d2e00;color:var(--warn)}
+#pno-app .chip.down{background:#3c1618;color:var(--down)}
+#pno-app .chip.wait{background:#21262d;color:var(--muted)}
+#pno-app .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:14px;margin-bottom:12px}
+#pno-app .kv dt{color:var(--muted)}
+#pno-app .kv dd{margin:0}
+#pno-app .todo{background:#21262d;border-radius:6px;padding:8px 12px;font-size:14px;line-height:1.6}
+#pno-app .hist{margin:4px 0 12px}
+#pno-app .hist small{color:var(--muted);font-size:12px}
+#pno-app .siteRow{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #21262d;font-size:14px}
+#pno-app .siteRow:last-child{border:0}
+#pno-app .siteRow .n{width:110px;flex:none;font-weight:600}
+#pno-app .siteRow .v{color:var(--muted)}
+#pno-app .siteRow button{all:unset;cursor:pointer;display:flex;gap:10px;align-items:center;width:100%}
+#pno-app .siteRow button:hover .n{text-decoration:underline}
+#pno-app a{color:#58a6ff}
+

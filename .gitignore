@@ -1,0 +1,4 @@
+runner/config.json
+runner/data/
+__pycache__/
+*.pyc

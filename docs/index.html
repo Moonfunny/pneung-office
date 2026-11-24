@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>ออฟฟิศดูแลเว็บ · Web P'Neung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="office.css">
+<style>
+  body{margin:0;background:#0d1117;color:#e6edf3;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
+  .page{max-width:1400px;margin:0 auto;padding:12px}
+  #pno-app{background:#0d1117}
+  .login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}
+  .login form{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:28px;width:100%;max-width:360px;box-sizing:border-box}
+  .login h1{font-family:Kanit,sans-serif;font-weight:600;font-size:24px;margin:0 0 4px}
+  .login p{color:#8b949e;margin:0 0 20px;font-size:14px;line-height:1.6}
+  .login label{display:block;font-size:13px;color:#8b949e;margin:12px 0 6px}
+  .login input{width:100%;box-sizing:border-box;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font:inherit;padding:10px 12px}
+  .login input:focus{outline:2px solid #1f6feb;border-color:#1f6feb}
+  .login button{width:100%;margin-top:20px;background:#238636;border:1px solid #2ea043;color:#fff;font:inherit;font-weight:600;border-radius:6px;padding:10px;cursor:pointer}
+  .login button:disabled{opacity:.6;cursor:wait}
+  .login .err{color:#f85149;font-size:14px;margin-top:12px;min-height:20px}
+  .login .strip{display:flex;height:5px;border-radius:3px;overflow:hidden;margin-bottom:18px}
+  .login .strip i{flex:1}
+</style>
+</head>
+<body>
+<div class="login" id="login">
+  <form id="loginForm" autocomplete="on">
+    <div class="strip"><i style="background:#e5534b"></i><i style="background:#f0883e"></i><i style="background:#e3b341"></i><i style="background:#3fb950"></i><i style="background:#39c5cf"></i><i style="background:#58a6ff"></i><i style="background:#a371f7"></i><i style="background:#db61a2"></i></div>
+    <h1>ออฟฟิศดูแลเว็บ</h1>
+    <p>เข้าสู่ระบบด้วยอีเมลและรหัสผ่านที่ได้รับ ข้อมูลถูกเข้ารหัสไว้ ถอดรหัสได้เฉพาะในเครื่องของคุณ</p>
+    <label for="email">อีเมล</label>
+    <input id="email" type="email" autocomplete="username" required>
+    <label for="pw">รหัสผ่าน</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <button id="btn" type="submit">เข้าสู่ระบบ</button>
+    <div class="err" id="err"></div>
+  </form>
+</div>
+<div class="page" id="page" style="display:none"><div id="pno-app"></div></div>
+
+<script src="office.js"></script>
+<script>
+(function () {
+  var enc = new TextEncoder(), dec = new TextDecoder();
+  var b64 = function (s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); };
+  var toB64 = function (u8) { var s = ''; u8.forEach(function (b) { s += String.fromCharCode(b); }); return btoa(s); };
+  var SKEY = 'pno_session';
+
+  async function sha256hex(s) {
+    var h = await crypto.subtle.digest('SHA-256', enc.encode(s));
+    return Array.from(new Uint8Array(h)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+  async function getJSON(name) {
+    var r = await fetch(name + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('โหลด ' + name + ' ไม่ได้ (' + r.status + ')');
+    return r.json();
+  }
+  async function unwrap(email, pw) {
+    var keys = await getJSON('keys.json');
+    var u = keys.users[await sha256hex(email.trim().toLowerCase())];
+    if (!u) throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    var base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
+    var kek = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(u.salt), iterations: u.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    try {
+      return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(u.iv) }, kek, b64(u.wk)));
+    } catch (e) { throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง'); }
+  }
+  async function decryptState(rawKey) {
+    var d = await getJSON('data.json');
+    var key = await crypto.subtle.importKey('raw', rawKey, 'AES-GCM', false, ['decrypt']);
+    try {
+      var pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(d.iv) }, key, b64(d.ct));
+      return JSON.parse(dec.decode(pt));
+    } catch (e) { throw new Error('KEY_CHANGED'); }
+  }
+  function logout() { try { sessionStorage.removeItem(SKEY); } catch (e) {} location.reload(); }
+
+  async function start(rawKey, email) {
+    var state = await decryptState(rawKey);
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('page').style.display = 'block';
+    window.PNO_START({
+      state: state, email: email, refresh: 60, logout: logout,
+      fetchState: async function () {
+        try { return await decryptState(rawKey); }
+        catch (e) { if (e.message === 'KEY_CHANGED') logout(); throw e; }
+      }
+    });
+  }
+
+  // จำการเข้าสู่ระบบไว้ในแท็บนี้ (ปิดแท็บแล้วต้องเข้าใหม่)
+  try {
+    var saved = JSON.parse(sessionStorage.getItem(SKEY) || 'null');
+    if (saved) start(b64(saved.k), saved.e).catch(function () { sessionStorage.removeItem(SKEY); });
+  } catch (e) {}
+
+  document.getElementById('loginForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var btn = document.getElementById('btn'), err = document.getElementById('err');
+    var email = document.getElementById('email').value, pw = document.getElementById('pw').value;
+    btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ…'; err.textContent = '';
+    try {
+      var raw = await unwrap(email, pw);
+      try { sessionStorage.setItem(SKEY, JSON.stringify({ k: toB64(raw), e: email.trim().toLowerCase() })); } catch (e) {}
+      await start(raw, email.trim().toLowerCase());
+    } catch (e) {
+      err.textContent = e.message === 'KEY_CHANGED' ? 'ข้อมูลยังไม่อัปเดตเป็นกุญแจใหม่ ลองใหม่อีกครั้งในไม่กี่นาที' : e.message;
+    } finally { btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ'; }
+  });
+})();
+</script>
+</body>
+</html>
