@@ -31,11 +31,9 @@ import urllib.request
 from pathlib import Path
 
 try:
-    from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-except ImportError:  # pragma: no cover
-    sys.exit("ต้องติดตั้งก่อน: py -m pip install cryptography")
+except ImportError as _e:  # pragma: no cover
+    sys.exit("โหลดตัวเข้ารหัสไม่ได้: %r\nลองติดตั้งใหม่: py -m pip install --upgrade cryptography" % (_e,))
 
 VERSION = "1.0.0"
 RUNNER = Path(__file__).resolve().parent
@@ -126,7 +124,8 @@ def site_id_from_domain(d):
 
 # ---------- เข้ารหัส ----------
 def kek(password, salt, iters):
-    return PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=iters).derive(password.encode("utf-8"))
+    # PBKDF2-HMAC-SHA256 จากไลบรารีมาตรฐานของ Python (ผลเหมือน WebCrypto ในเบราว์เซอร์)
+    return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iters, 32)
 
 
 def email_id(email):
