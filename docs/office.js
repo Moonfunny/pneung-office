@@ -129,7 +129,7 @@ function applyAgent(a) {
   ['ok', 'warn', 'down', 'wait'].forEach(function (s) { el.classList.toggle(s, s === d.status); });
   a.status = d.status;
   el.querySelector('.tag').textContent = d.name + ' · ' + a.site.id;
-  el.classList.toggle('showtag', d.status !== 'ok');
+  el.classList.toggle('showtag', d.status === 'warn' || d.status === 'down');
   var mon = ROOMS[a.si].monitors[a.ci]; mon.className = 'monitor ' + d.status;
 }
 function homePos(a) { return a.status === 'wait' ? a.rugSpot : a.seat; }
