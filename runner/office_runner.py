@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 P'Neung Office — เครื่องตรวจ (รันบน Windows ด้วย Task Scheduler ทุก 10 นาที)
