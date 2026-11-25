@@ -7,8 +7,9 @@
 <title>ออฟฟิศดูแลเว็บ · Web P'Neung</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Kanit:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="office.css">
+<link rel="stylesheet" href="themes.css">
 <style>
   body{margin:0;background:#0d1117;color:#e6edf3;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
   .page{max-width:1400px;margin:0 auto;padding:12px}
@@ -44,6 +45,7 @@
 <div class="page" id="page" style="display:none"><div id="pno-app"></div></div>
 
 <script src="office.js"></script>
+<script src="themes.js"></script>
 <script>
 (function () {
   var enc = new TextEncoder(), dec = new TextDecoder();
@@ -91,6 +93,7 @@
         catch (e) { if (e.message === 'KEY_CHANGED') logout(); throw e; }
       }
     });
+    try { if (window.PNO_THEME_AUTO) window.PNO_THEME_AUTO(); } catch (e) {}
   }
 
   // จำการเข้าสู่ระบบไว้ในแท็บนี้ (ปิดแท็บแล้วต้องเข้าใหม่)

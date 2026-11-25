@@ -1,0 +1,115 @@
+/* ===== P'Neung Office — ธีม (ใส่คลาสที่ #pno-app เช่น th-gaming, th-cozy, th-xmas) ===== */
+
+/* ---------- 1) Gaming RGB ---------- */
+#pno-app.th-gaming .map{background:#0e1117}
+#pno-app.th-gaming .map .floorline{background:repeating-linear-gradient(90deg,#1f2633 0 20px,transparent 20px 40px)}
+#pno-app.th-gaming .wall{background:#151a23;border-bottom-color:#0a0d12}
+#pno-app.th-gaming .sign{box-shadow:0 0 18px rgba(88,166,255,.35)}
+#pno-app.th-gaming .room{background-color:#171c25;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:20px 20px;border-color:#252c38;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4),0 0 14px -2px var(--c,#58a6ff)}
+#pno-app.th-gaming .room.meeting{background-color:#12161d;border-color:#252c38;box-shadow:0 0 14px -4px #8b949e}
+#pno-app.th-gaming .room .neon{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--c);box-shadow:0 0 8px var(--c),0 0 16px var(--c);opacity:.85}
+#pno-app.th-gaming .room .neonL{position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(var(--c),transparent);opacity:.7}
+#pno-app.th-gaming .desk{background:#0b0e13;border-bottom-color:#000;box-shadow:0 4px 8px -2px var(--c)}
+#pno-app.th-gaming .monitor{background:#000}
+#pno-app.th-gaming .rug{border-style:solid;border-width:2px;opacity:1;background:rgba(0,0,0,.35);box-shadow:0 0 10px -2px var(--c) inset}
+#pno-app.th-gaming .chair{position:absolute;width:22px;height:20px;background:#0b0e13;border-radius:5px 5px 2px 2px;box-shadow:inset 0 0 0 2px #000}
+#pno-app.th-gaming .chair::before{content:"";position:absolute;left:8px;top:2px;width:6px;height:14px;background:var(--c);border-radius:2px}
+#pno-app.th-gaming .chair::after{content:"";position:absolute;left:-3px;right:-3px;bottom:-4px;height:4px;background:#000;border-radius:2px}
+#pno-app.th-gaming .poster{position:absolute;width:26px;height:34px;background:#0b0e13;border:2px solid var(--c);box-shadow:0 0 8px -1px var(--c)}
+#pno-app.th-gaming .poster::before{content:"";position:absolute;inset:5px;background:linear-gradient(135deg,var(--c),transparent 70%);opacity:.8}
+#pno-app.th-gaming .table{box-shadow:0 0 16px -2px #a371f7}
+
+/* ---------- 2) ออฟฟิศไม้อบอุ่น ---------- */
+#pno-app.th-cozy .map{background:#e9dfd0}
+#pno-app.th-cozy .wall{background:#f3ebdf;border-bottom-color:#b99b74}
+#pno-app.th-cozy .room{background-color:#d8b98f;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 2px,transparent 2px 40px),repeating-linear-gradient(0deg,#d8b98f 0 18px,#cfae82 18px 20px);border-color:#a5825b}
+#pno-app.th-cozy .room.meeting{background-color:#8c6a48;background-image:repeating-linear-gradient(0deg,#8c6a48 0 18px,#82613f 18px 20px);border-color:#6b4f33}
+#pno-app.th-cozy .desk{background:#7a4f2a;border-bottom-color:#563619}
+#pno-app.th-cozy .rug{border-style:solid;opacity:.9;background:repeating-linear-gradient(45deg,rgba(255,255,255,.18) 0 6px,transparent 6px 12px);border-width:3px}
+#pno-app.th-cozy .lamp{position:absolute;width:10px;height:22px;background:#3d2b1a}
+#pno-app.th-cozy .lamp::before{content:"";position:absolute;left:-6px;top:-10px;width:22px;height:12px;background:#ffd98a;border-radius:10px 10px 2px 2px;box-shadow:0 6px 18px 6px rgba(255,210,120,.45)}
+
+/* ---------- 3) คริสต์มาส (ซ้อนบนธีมไหนก็ได้) ---------- */
+#pno-app.th-xmas .room{border-top-width:5px}
+#pno-app.th-xmas .room .lights{position:absolute;left:4px;right:4px;top:-2px;height:6px;background:radial-gradient(circle,#ff5f5f 0 2px,transparent 3px) 0 0/24px 6px,radial-gradient(circle,#ffd33d 0 2px,transparent 3px) 8px 0/24px 6px,radial-gradient(circle,#3fb950 0 2px,transparent 3px) 16px 0/24px 6px;animation:pno-twinkle 1.2s steps(2) infinite}
+@keyframes pno-twinkle{50%{filter:brightness(.55)}}
+#pno-app.th-xmas .agent .body{position:relative}
+#pno-app.th-xmas .agent .body::before{content:"";position:absolute;left:5px;top:-7px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:10px solid #d62828;z-index:1}
+#pno-app.th-xmas .agent .body::after{content:"";position:absolute;left:4px;top:2px;width:16px;height:3px;background:#fff;z-index:1}
+#pno-app.th-xmas .window .snow{position:absolute;inset:0;background-image:radial-gradient(#fff 1px,transparent 1.6px),radial-gradient(#fff 1px,transparent 1.6px);background-size:22px 22px,34px 34px;background-position:0 0,11px 17px;animation:pno-snow 6s linear infinite;opacity:.9;pointer-events:none}
+@keyframes pno-snow{to{background-position:0 22px,11px 51px}}
+#pno-app.th-xmas .xtree{position:absolute;width:0;height:0;border-left:26px solid transparent;border-right:26px solid transparent;border-bottom:64px solid #1f7a3a}
+#pno-app.th-xmas .xtree::before{content:"★";position:absolute;left:-7px;top:-14px;color:#ffd33d;font-size:16px;line-height:1}
+#pno-app.th-xmas .xtree::after{content:"";position:absolute;left:-5px;top:64px;width:10px;height:10px;background:#6b3e1e}
+#pno-app.th-xmas .xtree i{position:absolute;width:5px;height:5px;border-radius:50%}
+#pno-app.th-xmas .gift{position:absolute;width:14px;height:12px;background:var(--g,#d62828);box-shadow:inset 6px 0 0 -4px #ffd33d,inset -6px 0 0 -4px #ffd33d}
+
+/* ---------- 4) ห้องตามแบรนด์ (คลาส b-<site id> ที่ .room) ---------- */
+#pno-app.th-brand .map{background:#d9dde3}
+#pno-app.th-brand .prop{position:absolute;pointer-events:none}
+/* NUBWO — esports arena แดงนีออน */
+#pno-app .room.b-nubwo{background-color:#16131a;background-image:linear-gradient(rgba(229,83,75,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(229,83,75,.10) 1px,transparent 1px);background-size:20px 20px;border-color:#2a2230;box-shadow:inset 0 -3px 0 #e5534b,0 0 14px -3px #e5534b}
+#pno-app .room.b-nubwo .desk{background:#0c0a0e;box-shadow:0 4px 8px -2px #ff3b3b}
+#pno-app .room.b-nubwo .rug{border-style:solid;background:rgba(0,0,0,.35);box-shadow:inset 0 0 12px -2px #ff3b3b}
+#pno-app .pc{width:26px;height:44px;background:#0c0a0e;border:2px solid #3a3040;border-radius:2px}
+#pno-app .pc::before,#pno-app .pc::after{content:"";position:absolute;left:5px;width:12px;height:12px;border-radius:50%;border:2px solid #ff3b3b;box-shadow:0 0 6px #ff3b3b;animation:pno-rgb 3s linear infinite}
+#pno-app .pc::before{top:5px}#pno-app .pc::after{top:23px;animation-delay:-1.5s}
+@keyframes pno-rgb{0%{border-color:#ff3b3b;box-shadow:0 0 6px #ff3b3b}33%{border-color:#3bd1ff;box-shadow:0 0 6px #3bd1ff}66%{border-color:#a26bff;box-shadow:0 0 6px #a26bff}}
+#pno-app .headset{width:22px;height:18px;border:4px solid #e5534b;border-bottom:none;border-radius:12px 12px 0 0}
+#pno-app .headset::before,#pno-app .headset::after{content:"";position:absolute;bottom:-8px;width:7px;height:10px;background:#1b1520;border:2px solid #e5534b;border-radius:2px}
+#pno-app .headset::before{left:-6px}#pno-app .headset::after{right:-6px}
+/* EGA — ดำ + เขียวนีออน (#59d600 จากสไลเดอร์หน้าเว็บ) */
+#pno-app .room.b-egazone{background-color:#0b0f09;background-image:linear-gradient(rgba(89,214,0,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(89,214,0,.12) 1px,transparent 1px);background-size:24px 24px;border-color:#1f2a18;box-shadow:inset 0 -3px 0 #59d600,0 0 14px -3px #59d600}
+#pno-app .room.b-egazone .desk{background:#070906;box-shadow:0 4px 8px -2px #59d600}
+#pno-app .room.b-egazone .rug{border-style:solid;border-color:#59d600!important;background:repeating-linear-gradient(90deg,rgba(89,214,0,.16) 0 1px,transparent 1px 16px);box-shadow:inset 0 0 14px -4px #59d600}
+#pno-app .neonsign{padding:3px 6px;white-space:nowrap;font:700 13px/1 Audiowide,Kanit,sans-serif;letter-spacing:.5px;color:var(--t,#b6ff6a);background:#0b0d10;border:2px solid var(--n,#59d600);border-radius:3px;text-shadow:0 0 6px var(--n,#59d600);box-shadow:0 0 8px var(--n,#59d600),inset 0 0 6px -2px var(--n,#59d600);transform:rotate(-90deg);transform-origin:left top;animation:pno-neon 7s steps(1) infinite}
+@keyframes pno-neon{0%,93%,97%{opacity:1}95%{opacity:.55}}
+#pno-app .gdesk{width:40px;height:12px;background:#111;border-bottom:3px solid #59d600}
+#pno-app .gdesk::before,#pno-app .gdesk::after{content:"";position:absolute;top:12px;width:4px;height:22px;background:#2a2f26}
+#pno-app .gdesk::before{left:6px}#pno-app .gdesk::after{right:6px}
+/* SARU SPACE — premium ดำด้าน มินิมอล */
+#pno-app .room.b-saruspace{background:#1c1c1f;border-color:#2c2c31;box-shadow:inset 0 0 0 1px #3a3a40}
+#pno-app .room.b-saruspace .desk{background:#0f0f11;border-bottom-color:#e6e6e6}
+#pno-app .room.b-saruspace .rug{border:1px solid #e6e6e6!important;opacity:.6;background:#111}
+#pno-app .keyshelf{width:44px;height:58px;background:#111;border:2px solid #333}
+#pno-app .keyshelf::before{content:"";position:absolute;inset:5px;background:repeating-linear-gradient(0deg,transparent 0 6px,#e6e6e6 6px 7px,transparent 7px 16px),repeating-linear-gradient(90deg,#2b2b2b 0 6px,#555 6px 8px);opacity:.9}
+#pno-app .keycap{width:16px;height:14px;background:#f2f2f2;border-bottom:4px solid #9a9a9a;border-radius:2px}
+/* GLINK — ห้องเซิร์ฟเวอร์/เน็ตเวิร์ก */
+#pno-app .room.b-glink{background-color:#e3e8ee;background-image:linear-gradient(#c9d1db 1px,transparent 1px),linear-gradient(90deg,#c9d1db 1px,transparent 1px);background-size:30px 30px;border-color:#b6c0cc}
+#pno-app .room.b-glink .rug{border-style:solid;background:repeating-linear-gradient(0deg,rgba(63,185,80,.25) 0 2px,transparent 2px 8px,rgba(88,166,255,.3) 8px 10px,transparent 10px 16px)}
+#pno-app .rack{width:34px;height:70px;background:#1f2328;border:2px solid #0d1117}
+#pno-app .rack::before{content:"";position:absolute;inset:4px;background:repeating-linear-gradient(0deg,#30363d 0 7px,#0d1117 7px 9px)}
+#pno-app .rack i{position:absolute;right:6px;width:3px;height:3px;background:#3fb950;animation:pno-blink .8s steps(2) infinite}
+#pno-app .spool{width:26px;height:26px;border-radius:50%;border:6px solid #3b82f6;box-shadow:inset 0 0 0 3px #1f2328}
+#pno-app .cctv{width:20px;height:10px;background:#f0f3f6;border:2px solid #57606a;border-radius:2px 6px 6px 2px}
+/* LUMIRA — สว่าง โคมไฟ โซลาร์ */
+#pno-app .room.b-lumirathailand{background-color:#fff7e3;background-image:radial-gradient(circle at 25% 0,rgba(255,214,107,.55),transparent 45%),radial-gradient(circle at 75% 0,rgba(255,214,107,.55),transparent 45%);border-color:#ead9a9}
+#pno-app .room.b-lumirathailand .rug{border-style:solid;background:rgba(255,214,107,.18)}
+#pno-app .bulb{width:14px;height:14px;background:#ffe9a8;border-radius:50%;box-shadow:0 0 10px 6px rgba(255,214,107,.7)}
+#pno-app .bulb::after{content:"";position:absolute;left:4px;top:12px;width:6px;height:5px;background:#8b949e}
+#pno-app .solar{width:46px;height:28px;background:repeating-linear-gradient(90deg,#1e3a8a 0 10px,#93c5fd 10px 11px),#1e3a8a;border:2px solid #c9d1d9;transform:skewX(-12deg)}
+#pno-app .pstrip{width:40px;height:10px;background:#fff;border:2px solid #8b949e;border-radius:3px;background-image:radial-gradient(circle,#57606a 0 1.5px,transparent 2px);background-size:10px 10px}
+/* CEFLAR — ครัว/เครื่องเสียง สดใส */
+#pno-app .room.b-ceflar{background-color:#fdf3f5;background-image:conic-gradient(#f9e3e8 25%,transparent 0 50%,#f9e3e8 0 75%,transparent 0);background-size:28px 28px;border-color:#efc9d2}
+#pno-app .room.b-ceflar .rug{border-style:dotted;background:rgba(255,255,255,.6)}
+#pno-app .counter{width:48px;height:26px;background:#fff;border:2px solid #d0d7de;border-bottom:5px solid #b4bcc5}
+#pno-app .cooker{width:20px;height:16px;background:#f0883e;border-radius:6px 6px 3px 3px;border-bottom:3px solid #b05a17}
+#pno-app .cooker::before{content:"";position:absolute;left:3px;top:-4px;width:14px;height:5px;background:#fff;border:1px solid #d0d7de;border-radius:3px}
+#pno-app .speaker{width:22px;height:34px;background:#24292f;border-radius:3px}
+#pno-app .speaker::before{content:"";position:absolute;left:4px;top:15px;width:14px;height:14px;border-radius:50%;background:#57606a;box-shadow:0 0 0 2px #000;animation:pno-beat .5s ease-in-out infinite alternate}
+#pno-app .speaker::after{content:"";position:absolute;left:8px;top:4px;width:6px;height:6px;border-radius:50%;background:#57606a}
+@keyframes pno-beat{to{transform:scale(1.15)}}
+/* GMS — สำนักงานใหญ่ หลายแบรนด์ */
+#pno-app .room.b-gms{background-color:#c9d2de;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.18) 0 4px,transparent 4px 10px);border-color:#a9b4c2}
+#pno-app .room.b-gms .rug{border-style:solid;background:rgba(255,255,255,.35)}
+#pno-app .showcase{width:44px;height:62px;background:#f6f8fa;border:2px solid #8c959f}
+#pno-app .showcase::before{content:"";position:absolute;inset:4px;background:linear-gradient(#8c959f 0 0) 0 18px/100% 2px no-repeat,linear-gradient(#8c959f 0 0) 0 38px/100% 2px no-repeat,linear-gradient(90deg,#e5534b 0 8px,transparent 8px 12px,#58a6ff 12px 20px,transparent 20px 24px,#3fb950 24px 32px) 0 6px/100% 10px no-repeat,linear-gradient(90deg,#e3b341 0 10px,transparent 10px 14px,#a371f7 14px 22px) 0 26px/100% 10px no-repeat,linear-gradient(90deg,#db61a2 0 8px,transparent 8px 12px,#39c5cf 12px 22px) 0 46px/100% 8px no-repeat}
+#pno-app .gmslogo{padding:2px 6px;background:#1f2328;color:#fff;font:700 11px/1.2 Kanit,sans-serif;border-left:4px solid #a371f7}
+/* KATZUNI — โรงงาน/เวิร์กช็อป แบต UPS เครื่องมือ */
+#pno-app .room.b-katzuni{background-color:#b9b5ac;background-image:radial-gradient(rgba(0,0,0,.08) 1px,transparent 1.5px),radial-gradient(rgba(255,255,255,.12) 1px,transparent 1.5px);background-size:9px 9px,13px 13px;border-color:#8f8a80}
+#pno-app .room.b-katzuni .rug{border:5px solid transparent!important;opacity:1;background:linear-gradient(#aaa69d,#aaa69d) padding-box,repeating-linear-gradient(45deg,#f2c200 0 8px,#1f2328 8px 16px) border-box}
+#pno-app .pegboard{width:46px;height:56px;background:#c79a5b;background-image:radial-gradient(#7a5a2e 1px,transparent 1.5px);background-size:8px 8px;border:2px solid #8a6a3a}
+#pno-app .pegboard i{position:absolute;background:#57606a}
+#pno-app .ups{width:24px;height:30px;background:#2d333b;border-top:4px solid #f2c200}
+#pno-app .ups::before{content:"";position:absolute;left:4px;top:6px;width:16px;height:6px;background:#3fb950;box-shadow:0 0 4px #3fb950}
+#pno-app .ups::after{content:"";position:absolute;left:4px;top:16px;width:16px;height:2px;background:#57606a;box-shadow:0 4px 0 #57606a}
