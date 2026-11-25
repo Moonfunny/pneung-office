@@ -34,7 +34,7 @@ try:
 except ImportError as _e:  # pragma: no cover
     sys.exit("โหลดตัวเข้ารหัสไม่ได้: %r\nลองติดตั้งใหม่: py -m pip install --upgrade cryptography" % (_e,))
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 RUNNER = Path(__file__).resolve().parent
 ROOT = RUNNER.parent
 DOCS = ROOT / "docs"
@@ -44,7 +44,10 @@ HISTORY = DATA / "history.json"
 PULLCACHE = DATA / "last_pull.json"
 LOG = DATA / "runner.log"
 LOCK = DATA / "run.lock"
-PROOF = DATA / "proof.json"   # ผลตรวจคำผิด (งานตั้งเวลาของ Claude เขียนไว้ที่นี่ · ไม่ขึ้น GitHub)
+PROOF = DATA / "proof.json"
+DOMAINS = DATA / "domain.json"  # วันหมดอายุโดเมน (เช็กวันละครั้ง)
+RDAP_BASE = {"com": "https://rdap.verisign.com/com/v1/", "net": "https://rdap.verisign.com/net/v1/",
+             "th": "https://rdap.thains.co.th/"}  # จาก data.iana.org/rdap/dns.json   # ผลตรวจคำผิด (งานตั้งเวลาของ Claude เขียนไว้ที่นี่ · ไม่ขึ้น GitHub)
 BKK = dt.timezone(dt.timedelta(hours=7))
 PBKDF2_ITER = 310000
 UA = "Mozilla/5.0 (compatible; PNeungOffice/%s)" % VERSION
@@ -68,7 +71,9 @@ TH = {
     "backup_warn_h": 16 * 24, "backup_down_h": 31 * 24,
     "stale_pull_min": 180,      # ดึงข้อมูลจากเว็บไม่ได้นานเกินนี้ → ต้องดู
     "stale_speed_min": 1800,    # สปีดไม่ได้วัดใหม่นานเกินนี้ → ต้องดู
-    "stale_proof_h": 100,       # ผลตรวจคำผิดเก่ากว่านี้ (เกินช่วงวันหยุดยาวปกติ) → รอข้อมูล
+    "stale_proof_h": 100,
+    "domain_warn_days": 45, "domain_down_days": 14,
+    "domain_recheck_h": 24, "domain_retry_h": 6,       # ผลตรวจคำผิดเก่ากว่านี้ (เกินช่วงวันหยุดยาวปกติ) → รอข้อมูล
 }
 
 
@@ -266,6 +271,11 @@ def checks_def(t):
                        rule="เตือนเมื่อเกิน %s · ล่มเมื่อเกิน %s" % (htxt(t["backup_warn_h"]), htxt(t["backup_down_h"])),
                        sched="ทุก 10 นาที (ดึงจากตัวส่งรายงาน)",
                        todo="ถึงรอบแบ็กอัปแล้ว: Export ด้วย All-in-One WP Migration ดาวน์โหลดเก็บ แล้วลบไฟล์บนโฮสต์ได้ตามปกติ (ระบบจำไว้ให้แล้ว)"),
+        "domain": dict(name="น้องโดเมน", shirt="#6e40c9", unit="วัน",
+                       role="นับวันที่เหลือก่อนโดเมนหมดอายุ (ข้อมูลทางการจากนายทะเบียนผ่าน RDAP)",
+                       rule="เตือนเมื่อเหลือน้อยกว่า %d วัน · มีปัญหาเมื่อเหลือ %d วันหรือน้อยกว่า" % (t["domain_warn_days"], t["domain_down_days"]),
+                       sched="วันละครั้ง (เครื่องตรวจถามนายทะเบียนโดเมน)",
+                       todo="ต่ออายุโดเมนกับผู้ให้บริการที่จดไว้ (หรือเปิดต่ออายุอัตโนมัติ) โดเมนหมดอายุ = เว็บและอีเมลหายทั้งหมด"),
         "proof": dict(name="น้องพิสูจน์อักษร", shirt="#0e8a8a", unit="จุด",
                       role="อ่านหน้าเพจ บทความ และหน้าสินค้าที่สร้างหรือแก้ใน 24 ชม. แล้วหาคำผิด (Claude เป็นคนตรวจ)",
                       rule="เตือนเมื่อเจอคำผิดหรือคำน่าสงสัย · ไม่มีสถานะแดง เพราะคำผิดไม่ทำให้เว็บล่ม",
@@ -310,6 +320,10 @@ def evaluate(key, v, data, t):
         h = float(v)
         s = "down" if h > t["backup_down_h"] else ("warn" if h > t["backup_warn_h"] else "ok")
         return s, "แบ็กอัปล่าสุด %sที่แล้ว" % htxt(h), "ไม่ได้แบ็กอัปมา %s" % htxt(h)
+    if key == "domain":
+        d = int(v)
+        s = "down" if d <= t["domain_down_days"] else ("warn" if d < t["domain_warn_days"] else "ok")
+        return s, "เหลือ %d วัน" % d if d >= 0 else "หมดอายุแล้ว %d วัน" % -d, "โดเมนเหลือ %d วัน!" % d
     if key == "proof":
         n = int(v)
         npg = data.get("n_pages", 0)
@@ -320,6 +334,87 @@ def evaluate(key, v, data, t):
             return "ok", "ตรวจ %d หน้าใหม่/แก้ไข ไม่พบคำผิด" % npg, ""
         return "ok", "ไม่มีหน้าใหม่หรือหน้าที่แก้ไขในรอบนี้", ""
     return "wait", "", ""
+
+
+# ---------- น้องโดเมน (RDAP) ----------
+def rdap_expiry(domain):
+    """คืน (วันหมดอายุ 'YYYY-MM-DD', ผู้รับจด, error)"""
+    domain = domain.lower().strip(".")
+    if domain.startswith("www."):
+        domain = domain[4:]
+    tld = domain.rsplit(".", 1)[-1]
+    base = RDAP_BASE.get(tld)
+    if not base:
+        code, body, _, err = http_get("https://data.iana.org/rdap/dns.json", timeout=20)
+        if err is None and code == 200:
+            try:
+                for svc in json.loads(body.decode("utf-8"))["services"]:
+                    if tld in svc[0]:
+                        base = svc[1][0]
+                        break
+            except Exception:
+                pass
+    if not base:
+        return None, None, "ไม่พบบริการ RDAP ของ .%s" % tld
+    code, body, _, err = http_get(base.rstrip("/") + "/domain/" + domain, {"Accept": "application/rdap+json, application/json"}, timeout=25)
+    if err is not None:
+        return None, None, "ถามนายทะเบียนไม่ได้: " + str(err)[:80]
+    if code != 200:
+        return None, None, "นายทะเบียนตอบ HTTP %s" % code
+    try:
+        j = json.loads(body.decode("utf-8", "replace"))
+    except Exception:
+        return None, None, "ข้อมูลจากนายทะเบียนอ่านไม่ได้"
+    exp = None
+    for ev in j.get("events") or []:
+        if str(ev.get("eventAction", "")).lower() in ("expiration", "registration expiration"):
+            exp = str(ev.get("eventDate", ""))[:10]
+            break
+    if not exp:
+        return None, None, "นายทะเบียนไม่ได้บอกวันหมดอายุ"
+    reg = None
+    for ent in j.get("entities") or []:
+        if "registrar" in (ent.get("roles") or []):
+            try:
+                for f in ent["vcardArray"][1]:
+                    if f[0] == "fn":
+                        reg = str(f[3])[:60]
+            except Exception:
+                pass
+            reg = reg or ent.get("handle")
+    return exp, reg, None
+
+
+def domain_check(site, dcache, t):
+    """คืน (วันที่เหลือ, data, last_min) · เช็กนายทะเบียนวันละครั้ง ใช้ค่าที่จำไว้ระหว่างวัน"""
+    sid = site["id"]
+    c = dcache.get(sid) or {}
+    age_h = (now() - c.get("at", 0)) / 3600
+    need = age_h >= (t["domain_retry_h"] if c.get("error") else t["domain_recheck_h"])
+    manual = site.get("domain_expires")  # ใส่เองใน config.json ได้ เช่น "2027-03-15" ถ้านายทะเบียนไม่ตอบ
+    if need and not manual:
+        exp, reg, err = rdap_expiry(site.get("domain") or site["url"].split("/")[2])
+        if exp:
+            c = {"at": now(), "expires": exp, "registrar": reg, "src": "RDAP"}
+        else:
+            c = dict(c, at=now(), error=err)
+        dcache[sid] = c
+    exp = manual or c.get("expires")
+    data = {}
+    if not exp:
+        data["error"] = c.get("error") or "ยังไม่ได้เช็ก"
+        return None, data, None
+    try:
+        d_exp = dt.date.fromisoformat(exp[:10])
+    except Exception:
+        return None, {"error": "วันหมดอายุอ่านไม่ได้: %s" % exp}, None
+    days = (d_exp - dt.datetime.now(BKK).date()).days
+    data = {"expires": d_exp.strftime("%d/%m/%Y"), "registrar": c.get("registrar") if not manual else None,
+            "src": "กรอกเองใน config.json" if manual else "นายทะเบียน (RDAP)"}
+    if c.get("error") and not manual:
+        data["note"] = "รอบล่าสุดถามนายทะเบียนไม่ได้ (%s) ใช้ค่าที่จำไว้" % c["error"]
+    last_min = (now() - c["at"]) / 60 if c.get("at") else None
+    return days, data, last_min
 
 
 # ---------- น้องพิสูจน์อักษร (อ่านผลจาก runner/data/proof.json) ----------
@@ -458,6 +553,13 @@ def build_agent(site, key, v, data, t, hist, last_min, stale_note=None, extra_to
         a["detail"]["คะแนน Performance"] = "%s/100" % data["score"]
     if key == "speed" and data.get("baseline") is not None:
         a["detail"]["ค่าปกติ (มัธยฐาน 7 วัน)"] = "LCP %.1f วิ" % float(data["baseline"])
+    if key == "domain" and data.get("expires"):
+        a["detail"]["หมดอายุ"] = data["expires"]
+        if data.get("registrar"):
+            a["detail"]["ผู้รับจด"] = data["registrar"]
+        a["detail"]["ที่มา"] = data["src"]
+        if data.get("note"):
+            a["detail"]["หมายเหตุ"] = data["note"]
     if key == "proof" and "pages" in data:
         a["pages"] = [p for p in data["pages"] if p["issues"]]
         clean = [p["title"] or p["url"] for p in data["pages"] if not p["issues"]]
@@ -501,6 +603,7 @@ def run(push=True):
             return
         hist = load_json(HISTORY, {})
         cache = load_json(PULLCACHE, {})
+        dcache = load_json(DOMAINS, {})
         proof = load_json(PROOF, None)
         proof_at = proof.get("checked_at") if isinstance(proof, dict) else None
         if not isinstance(proof, dict):
@@ -551,7 +654,19 @@ def run(push=True):
                     hist_add(hist, sid, key, v, evaluate(key, v, data, t)[0])
                 agents.append(build_agent(site, key, v, data, t, hist, last_min, stale, todo))
 
-            # น้องคนที่ 6: พิสูจน์อักษร
+            # น้องโดเมน
+            try:
+                dv, ddata, dlast = domain_check(site, dcache, t)
+                if dv is not None and hist.get("_domain_day", {}).get(sid) != today():
+                    hist_add(hist, sid, "domain", dv, evaluate("domain", dv, ddata, t)[0])
+                    hist.setdefault("_domain_day", {})[sid] = today()
+                agents.append(build_agent(site, "domain", dv, ddata, t, hist, dlast,
+                                          extra_todo=None if dv is not None else "ถ้านายทะเบียนไม่ตอบติดกันหลายวัน ใส่ \"domain_expires\": \"YYYY-MM-DD\" ของเว็บนี้ใน runner/config.json แทน"))
+            except Exception as e:
+                log("เช็กโดเมนของ %s ไม่ได้: %r" % (sid, e))
+                agents.append(build_agent(site, "domain", None, {"error": "เช็กโดเมนไม่ได้"}, t, hist, None))
+
+            # น้องพิสูจน์อักษร
             try:
                 pv, pdata, plast, _wait = proof_for_site(proof, sid, t)
                 if pv is not None and proof_at and hist.get("_proof_seen", {}).get(sid) != proof_at:
@@ -573,6 +688,7 @@ def run(push=True):
         hist_prune(hist)
         save_json(HISTORY, hist)
         save_json(PULLCACHE, cache)
+        save_json(DOMAINS, dcache)
         state = {"generated": now(), "count": count, "total": sum(count.values()), "sites": sites_out,
                  "runner": VERSION, "interval_min": cfg.get("interval_min", 10)}
         encrypt_state(cfg, state)
