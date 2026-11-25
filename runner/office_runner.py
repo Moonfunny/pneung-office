@@ -34,7 +34,7 @@ try:
 except ImportError as _e:  # pragma: no cover
     sys.exit("โหลดตัวเข้ารหัสไม่ได้: %r\nลองติดตั้งใหม่: py -m pip install --upgrade cryptography" % (_e,))
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 RUNNER = Path(__file__).resolve().parent
 ROOT = RUNNER.parent
 DOCS = ROOT / "docs"
@@ -44,6 +44,7 @@ HISTORY = DATA / "history.json"
 PULLCACHE = DATA / "last_pull.json"
 LOG = DATA / "runner.log"
 LOCK = DATA / "run.lock"
+PROOF = DATA / "proof.json"   # ผลตรวจคำผิด (งานตั้งเวลาของ Claude เขียนไว้ที่นี่ · ไม่ขึ้น GitHub)
 BKK = dt.timezone(dt.timedelta(hours=7))
 PBKDF2_ITER = 310000
 UA = "Mozilla/5.0 (compatible; PNeungOffice/%s)" % VERSION
@@ -60,11 +61,14 @@ PALETTE = ["#e5534b", "#f0883e", "#e3b341", "#3fb950", "#39c5cf", "#58a6ff", "#a
 TH = {
     "uptime_slow_ms": 2000,
     "ssl_warn_days": 14, "ssl_down_days": 3,
-    "speed_warn_s": 3.0, "speed_down_s": 6.0,
+    "speed_slower_pct": 50,     # สปีด: เตือนเมื่อ LCP ช้ากว่าค่าปกติ (มัธยฐาน 7 วันก่อน) ของเว็บนั้นเกินกี่ %
+    "speed_slower_min_s": 1.0,  # …และช้าลงอย่างน้อยกี่วินาที (กันเตือนจากความแกว่งเล็ก ๆ)
+    "speed_base_days": 3,       # ต้องมีค่าย้อนหลังอย่างน้อยกี่วันถึงเริ่มเทียบ
     "update_warn": 5,
     "backup_warn_h": 16 * 24, "backup_down_h": 31 * 24,
     "stale_pull_min": 180,      # ดึงข้อมูลจากเว็บไม่ได้นานเกินนี้ → ต้องดู
     "stale_speed_min": 1800,    # สปีดไม่ได้วัดใหม่นานเกินนี้ → ต้องดู
+    "stale_proof_h": 100,       # ผลตรวจคำผิดเก่ากว่านี้ (เกินช่วงวันหยุดยาวปกติ) → รอข้อมูล
 }
 
 
@@ -248,10 +252,10 @@ def checks_def(t):
                     sched="ทุก 10 นาที (ดึงจากตัวส่งรายงาน)",
                     todo="ต่ออายุ SSL หรือเช็กว่า auto-renew ในแผงโฮสต์ยังทำงาน"),
         "speed": dict(name="น้องสปีด", shirt="#db6d28", unit="วิ",
-                      role="วัดความเร็วหน้าแรกบนมือถือ (LCP จาก Google PageSpeed)",
-                      rule="เตือนเมื่อ LCP เกิน %.1f วิ · ล่มเมื่อเกิน %.1f วิ" % (t["speed_warn_s"], t["speed_down_s"]),
+                      role="วัดความเร็วหน้าแรกบนมือถือ (LCP จาก Google PageSpeed) แล้วเทียบกับค่าปกติของเว็บนี้เอง",
+                      rule="ไม่มีสถานะแดง · เตือนเมื่อช้ากว่าค่าปกติ 7 วันของเว็บนี้เกิน %d%% (เว็บโชว์รูปสินค้าเยอะช้ากว่าเว็บทั่วไปเป็นเรื่องปกติ จึงไม่เทียบกับเกณฑ์ตายตัว)" % t["speed_slower_pct"],
                       sched="วันละ 2 รอบ (วัดโดยตัวส่งรายงาน)",
-                      todo="เช็กรูป hero ที่ใหญ่เกิน ปลั๊กอิน cache และ script ที่โหลดเพิ่มในหน้าแรก"),
+                      todo="เว็บช้าลงกว่าปกติ: ดูว่าช่วงนี้มีการอัปรูปใหญ่ เปลี่ยนสไลเดอร์ ลงปลั๊กอินใหม่ หรือ cache หลุดไหม"),
         "update": dict(name="น้องอัปเดต", shirt="#8957e5", unit="รายการ",
                        role="นับ WordPress ธีม และปลั๊กอินที่รออัปเดต",
                        rule="เตือนเมื่อรออัปเดตตั้งแต่ %d รายการ" % t["update_warn"],
@@ -262,6 +266,11 @@ def checks_def(t):
                        rule="เตือนเมื่อเกิน %s · ล่มเมื่อเกิน %s" % (htxt(t["backup_warn_h"]), htxt(t["backup_down_h"])),
                        sched="ทุก 10 นาที (ดึงจากตัวส่งรายงาน)",
                        todo="ถึงรอบแบ็กอัปแล้ว: Export ด้วย All-in-One WP Migration ดาวน์โหลดเก็บ แล้วลบไฟล์บนโฮสต์ได้ตามปกติ (ระบบจำไว้ให้แล้ว)"),
+        "proof": dict(name="น้องพิสูจน์อักษร", shirt="#0e8a8a", unit="จุด",
+                      role="อ่านหน้าเพจ บทความ และหน้าสินค้าที่สร้างหรือแก้ใน 24 ชม. แล้วหาคำผิด (Claude เป็นคนตรวจ)",
+                      rule="เตือนเมื่อเจอคำผิดหรือคำน่าสงสัย · ไม่มีสถานะแดง เพราะคำผิดไม่ทำให้เว็บล่ม",
+                      sched="จ.–ศ. วันละครั้ง ราว 16:15 น. (ต้องเปิดเครื่องตรวจและแอป Claude ไว้)",
+                      todo="เปิดหน้าตามรายการ แก้คำที่ผิดแล้วกดอัปเดตหน้า รอบตรวจถัดไปจะเช็กซ้ำให้ ถ้าคำไหนไม่ได้ผิด บอก Claude ให้เพิ่มเป็นคำยกเว้น"),
     }
 
 
@@ -285,9 +294,15 @@ def evaluate(key, v, data, t):
         return s, "เหลือ %d วัน" % d, "SSL เหลือ %d วัน!" % d
     if key == "speed":
         sec = float(v)
-        s = "down" if sec > t["speed_down_s"] else ("warn" if sec > t["speed_warn_s"] else "ok")
         sc = " · คะแนน %d" % data["score"] if data.get("score") is not None else ""
-        return s, "LCP %.1f วิ (มือถือ)%s" % (sec, sc), "หน้าแรกช้า %.1f วิ" % sec
+        base = data.get("baseline")
+        if base is None:
+            return "ok", "LCP %.1f วิ (มือถือ)%s · กำลังเก็บค่าปกติ" % (sec, sc), ""
+        base = float(base)
+        slower = base > 0 and sec >= base * (1 + t["speed_slower_pct"] / 100.0) and sec - base >= t["speed_slower_min_s"]
+        if slower:
+            return "warn", "LCP %.1f วิ (มือถือ)%s · ช้ากว่าปกติ (%.1f วิ) %d%%" % (sec, sc, base, round((sec / base - 1) * 100)), "ช้ากว่าปกติ %.1f→%.1f วิ" % (base, sec)
+        return "ok", "LCP %.1f วิ (มือถือ)%s · ปกติของเว็บนี้ %.1f วิ" % (sec, sc, base), ""
     if key == "update":
         n = int(v)
         return ("warn" if n >= t["update_warn"] else "ok"), "รออัปเดต %d รายการ" % n, "รออัปเดต %d ตัว" % n
@@ -295,7 +310,58 @@ def evaluate(key, v, data, t):
         h = float(v)
         s = "down" if h > t["backup_down_h"] else ("warn" if h > t["backup_warn_h"] else "ok")
         return s, "แบ็กอัปล่าสุด %sที่แล้ว" % htxt(h), "ไม่ได้แบ็กอัปมา %s" % htxt(h)
+    if key == "proof":
+        n = int(v)
+        npg = data.get("n_pages", 0)
+        nbad = data.get("n_bad_pages", 0)
+        if n > 0:
+            return "warn", "พบคำผิด/น่าสงสัย %d จุด ใน %d หน้า (ตรวจ %d หน้า)" % (n, nbad, npg), "เจอคำผิด %d จุด" % n
+        if npg:
+            return "ok", "ตรวจ %d หน้าใหม่/แก้ไข ไม่พบคำผิด" % npg, ""
+        return "ok", "ไม่มีหน้าใหม่หรือหน้าที่แก้ไขในรอบนี้", ""
     return "wait", "", ""
+
+
+# ---------- น้องพิสูจน์อักษร (อ่านผลจาก runner/data/proof.json) ----------
+def _s(x, n):
+    return str(x if x is not None else "")[:n]
+
+
+def proof_for_site(proof, sid, t):
+    """คืน (v, data, last_min, error) จากไฟล์ผลตรวจ · v=None แปลว่ารอข้อมูล"""
+    if not proof:
+        return None, {"error": "ยังไม่มีผลตรวจคำผิด (รอรอบแรกของ Claude)"}, None, True
+    try:
+        at = int(proof.get("checked_at") or 0)
+    except Exception:
+        at = 0
+    last_min = (now() - at) / 60 if at else None
+    if last_min is None or last_min > t["stale_proof_h"] * 60:
+        return None, {"error": "ผลตรวจคำผิดเก่าแล้ว (ตรวจล่าสุด %s)" % (age_txt(last_min) + "ที่แล้ว" if last_min else "-")}, last_min, True
+    s = (proof.get("sites") or {}).get(sid)
+    if not isinstance(s, dict):
+        return None, {"error": "รอบตรวจล่าสุดไม่มีผลของเว็บนี้"}, last_min, True
+    if s.get("error"):
+        return None, {"error": "ตรวจเว็บนี้ไม่ได้: " + _s(s["error"], 120)}, last_min, True
+    pages_out, n = [], 0
+    for p in (s.get("pages") or [])[:30]:
+        if not isinstance(p, dict):
+            continue
+        issues = []
+        for it in (p.get("issues") or [])[:20]:
+            if not isinstance(it, dict):
+                continue
+            issues.append({"wrong": _s(it.get("wrong"), 80), "fix": _s(it.get("fix"), 80),
+                           "context": _s(it.get("context"), 160), "sure": bool(it.get("sure", True))})
+        n += len(issues)
+        url = _s(p.get("url"), 300)
+        if not url.startswith("http"):
+            url = ""
+        pages_out.append({"title": _s(p.get("title"), 120), "url": url, "modified": _s(p.get("modified"), 25), "issues": issues})
+    data = {"pages": pages_out, "n_pages": int(s.get("checked", len(pages_out)) or 0),
+            "n_bad_pages": sum(1 for p in pages_out if p["issues"]), "more": int(s.get("more", 0) or 0),
+            "window": _s(proof.get("window_from"), 25)}
+    return n, data, last_min, False
 
 
 # ---------- ประวัติรายวัน ----------
@@ -342,6 +408,17 @@ def hist_prune(hist):
                 del hist[sid][key][d]
 
 
+def speed_baseline(hist, sid, t):
+    """มัธยฐาน LCP รายวันของ 7 วันก่อนหน้า (ไม่รวมวันนี้) · None ถ้าข้อมูลยังไม่พอ"""
+    rows = hist.get(sid, {}).get("speed", {})
+    vals = [float(rows[d]["last"]) for d in sorted(rows) if d < today() and rows[d].get("last") is not None][-7:]
+    if len(vals) < t["speed_base_days"]:
+        return None
+    vals.sort()
+    m = len(vals) // 2
+    return vals[m] if len(vals) % 2 else (vals[m - 1] + vals[m]) / 2
+
+
 def uptime_pct(hist, sid):
     rows = list(hist.get(sid, {}).get("uptime", {}).values())[-7:]
     tot = sum(r["total"] for r in rows)
@@ -379,6 +456,22 @@ def build_agent(site, key, v, data, t, hist, last_min, stale_note=None, extra_to
         a["detail"]["แหล่งแบ็กอัป"] = data["source"]
     if key == "speed" and data.get("score") is not None:
         a["detail"]["คะแนน Performance"] = "%s/100" % data["score"]
+    if key == "speed" and data.get("baseline") is not None:
+        a["detail"]["ค่าปกติ (มัธยฐาน 7 วัน)"] = "LCP %.1f วิ" % float(data["baseline"])
+    if key == "proof" and "pages" in data:
+        a["pages"] = [p for p in data["pages"] if p["issues"]]
+        clean = [p["title"] or p["url"] for p in data["pages"] if not p["issues"]]
+        if data.get("window"):
+            w = data["window"]
+            try:
+                w = dt.datetime.fromisoformat(w[:19]).strftime("%d/%m/%Y %H:%M น.")
+            except Exception:
+                pass
+            a["detail"]["ตรวจหน้าที่แก้ตั้งแต่"] = w
+        if clean:
+            a["detail"]["ไม่พบคำผิด"] = ", ".join(clean[:12]) + (" …" if len(clean) > 12 else "")
+        if data.get("more"):
+            a["detail"]["ยังไม่ได้ตรวจ"] = "อีก %d หน้า (รอบนี้ตรวจได้ไม่หมด)" % data["more"]
     if data.get("reporter"):
         a["detail"]["ตัวส่งรายงาน"] = "v" + str(data["reporter"])
     a.update(status=status, value=value, sh=sh, last=None if last_min is None else int(round(last_min)))
@@ -408,6 +501,10 @@ def run(push=True):
             return
         hist = load_json(HISTORY, {})
         cache = load_json(PULLCACHE, {})
+        proof = load_json(PROOF, None)
+        proof_at = proof.get("checked_at") if isinstance(proof, dict) else None
+        if not isinstance(proof, dict):
+            proof = None
         sites_out, count = [], {"ok": 0, "warn": 0, "down": 0, "wait": 0}
 
         for i, site in enumerate(cfg["sites"]):
@@ -437,6 +534,8 @@ def run(push=True):
                 v = item.get("v")
                 data = dict(item.get("data") or {})
                 data["reporter"] = c["res"].get("reporter")
+                if key == "speed":
+                    data["baseline"] = speed_baseline(hist, sid, t)
                 last_min = pull_age
                 stale = None
                 todo = None
@@ -451,6 +550,18 @@ def run(push=True):
                 if res:  # บันทึกประวัติเฉพาะเมื่อได้ข้อมูลใหม่
                     hist_add(hist, sid, key, v, evaluate(key, v, data, t)[0])
                 agents.append(build_agent(site, key, v, data, t, hist, last_min, stale, todo))
+
+            # น้องคนที่ 6: พิสูจน์อักษร
+            try:
+                pv, pdata, plast, _wait = proof_for_site(proof, sid, t)
+                if pv is not None and proof_at and hist.get("_proof_seen", {}).get(sid) != proof_at:
+                    hist_add(hist, sid, "proof", pv, evaluate("proof", pv, pdata, t)[0])  # บันทึกครั้งเดียวต่อรอบตรวจ
+                    hist.setdefault("_proof_seen", {})[sid] = proof_at
+                agents.append(build_agent(site, "proof", pv, pdata, t, hist, plast,
+                                          extra_todo=None if pv is not None else "รอรอบตรวจของ Claude (จ.–ศ. ราว 16:15 น.) · ช่วงนั้นต้องเปิดเครื่องตรวจและแอป Claude ไว้"))
+            except Exception as e:  # ไฟล์ผลตรวจเสีย ต้องไม่ทำให้เครื่องตรวจทั้งระบบล้ม
+                log("อ่านผลตรวจคำผิดของ %s ไม่ได้: %r" % (sid, e))
+                agents.append(build_agent(site, "proof", None, {"error": "อ่านไฟล์ผลตรวจไม่ได้"}, t, hist, None))
 
             for a in agents:
                 count[a["status"]] += 1
