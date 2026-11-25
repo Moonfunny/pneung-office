@@ -279,7 +279,7 @@ def checks_def(t):
         "proof": dict(name="น้องพิสูจน์อักษร", shirt="#0e8a8a", unit="จุด",
                       role="อ่านหน้าเพจ บทความ และหน้าสินค้าที่สร้างหรือแก้ใน 24 ชม. แล้วหาคำผิด (Claude เป็นคนตรวจ)",
                       rule="เตือนเมื่อเจอคำผิดหรือคำน่าสงสัย · ไม่มีสถานะแดง เพราะคำผิดไม่ทำให้เว็บล่ม",
-                      sched="จ.–ศ. วันละครั้ง ราว 16:15 น. (ต้องเปิดเครื่องตรวจและแอป Claude ไว้)",
+                      sched="จ.–ศ. วันละครั้ง ราว 16:30 น. (ต้องเปิดเครื่องตรวจและแอป Claude ไว้)",
                       todo="เปิดหน้าตามรายการ แก้คำที่ผิดแล้วกดอัปเดตหน้า รอบตรวจถัดไปจะเช็กซ้ำให้ ถ้าคำไหนไม่ได้ผิด บอก Claude ให้เพิ่มเป็นคำยกเว้น"),
     }
 
@@ -673,7 +673,7 @@ def run(push=True):
                     hist_add(hist, sid, "proof", pv, evaluate("proof", pv, pdata, t)[0])  # บันทึกครั้งเดียวต่อรอบตรวจ
                     hist.setdefault("_proof_seen", {})[sid] = proof_at
                 agents.append(build_agent(site, "proof", pv, pdata, t, hist, plast,
-                                          extra_todo=None if pv is not None else "รอรอบตรวจของ Claude (จ.–ศ. ราว 16:15 น.) · ช่วงนั้นต้องเปิดเครื่องตรวจและแอป Claude ไว้"))
+                                          extra_todo=None if pv is not None else "รอรอบตรวจของ Claude (จ.–ศ. ราว 16:30 น.) · ช่วงนั้นต้องเปิดเครื่องตรวจและแอป Claude ไว้"))
             except Exception as e:  # ไฟล์ผลตรวจเสีย ต้องไม่ทำให้เครื่องตรวจทั้งระบบล้ม
                 log("อ่านผลตรวจคำผิดของ %s ไม่ได้: %r" % (sid, e))
                 agents.append(build_agent(site, "proof", None, {"error": "อ่านไฟล์ผลตรวจไม่ได้"}, t, hist, None))
