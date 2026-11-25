@@ -136,3 +136,13 @@
 #pno-app .siteRow button:hover .n{text-decoration:underline}
 #pno-app a{color:#58a6ff}
 
+/* น้องพิสูจน์อักษร: รายการคำผิด */
+#pno-app .proof{margin:0 0 12px;display:flex;flex-direction:column;gap:10px;max-height:360px;overflow:auto}
+#pno-app .proof .pg{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+#pno-app .proof .pt{font-weight:600;font-size:14px;margin-bottom:4px}
+#pno-app .proof ul{margin:0;padding-left:18px;font-size:14px;line-height:1.6}
+#pno-app .proof li.sure .w{color:var(--down);text-decoration:line-through}
+#pno-app .proof li.maybe .w{color:var(--warn)}
+#pno-app .proof .f{color:var(--ok);font-weight:600}
+#pno-app .proof .q{font-size:11px;color:#000;background:var(--warn);border-radius:999px;padding:0 6px}
+#pno-app .proof .c{color:var(--muted);font-size:12px}

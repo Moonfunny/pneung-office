@@ -16,7 +16,7 @@ var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms);
 app.innerHTML =
   '<div class="pno-inner">' +
   '<h1>ออฟฟิศดูแลเว็บของ P\'Neung</h1>' +
-  '<p class="sub">แต่ละเว็บคือหนึ่งแผนก มีน้อง 5 ตัวคอยเช็กว่าเว็บเปิดได้ไหม SSL ใกล้หมดหรือยัง เว็บเร็วแค่ไหน มีปลั๊กอินรออัปเดตกี่ตัว และแบ็กอัปล่าสุดเมื่อไร กดที่น้องเพื่อดูงาน กดป้ายห้องเพื่อดูภาพรวมของเว็บ หรือเรียกประชุมให้ทุกคนมารายงาน · <span id="pno-who"></span> <a href="#" id="pno-logout">ออกจากระบบ</a></p>' +
+  '<p class="sub">แต่ละเว็บคือหนึ่งแผนก มีน้อง 6 ตัวคอยเช็กว่าเว็บเปิดได้ไหม SSL ใกล้หมดหรือยัง เว็บเร็วแค่ไหน มีปลั๊กอินรออัปเดตกี่ตัว แบ็กอัปล่าสุดเมื่อไร และหน้าใหม่มีคำผิดไหม กดที่น้องเพื่อดูงาน กดป้ายห้องเพื่อดูภาพรวมของเว็บ หรือเรียกประชุมให้ทุกคนมารายงาน · <span id="pno-who"></span> <a href="#" id="pno-logout">ออกจากระบบ</a></p>' +
   '<div class="alert" id="pno-offline" style="display:none;border-left-color:#8b949e;background:#1c2128"></div>' +
   '<div class="rainbow" id="pno-rainbow"></div>' +
   '<div class="bar" id="pno-stats"></div>' +
@@ -36,6 +36,12 @@ var COLS = [30, 460, 890], RW = 400, RH = 230, SPEED = 150;
 var NROWS = Math.max(1, Math.ceil((N + 1) / 3));
 var ROWS = []; for (var r = 0; r < NROWS; r++) ROWS.push(160 + r * 260);
 var MAP_W = 1320, MAP_H = ROWS[NROWS - 1] + RH + 40;
+/* จำนวนโต๊ะต่อห้อง = จำนวนน้องมากสุดของเว็บใด ๆ (เดิมล็อกไว้ 5) */
+var NA = Math.max(1, SITES.reduce(function (m, s) { return Math.max(m, (s.agents || []).length); }, 0));
+var DSTEP = NA > 1 ? Math.min(74, Math.floor((RW - 30 - 58) / (NA - 1))) : 0;
+var DX0 = Math.round((RW - 6 - (DSTEP * (NA - 1) + 58)) / 2);
+var RSTEP = NA > 1 ? Math.min(68, Math.floor(300 / (NA - 1))) : 0;
+var NTASK = SITES.reduce(function (m, s) { return m + (s.agents || []).length; }, 0);
 map.style.height = px(MAP_H);
 var MEET_CELL = [1, Math.floor((NROWS - 1) / 2)];
 var CELLS = [];
@@ -85,14 +91,14 @@ function buildRoom(i, col, row, title, color, meeting) {
 SITES.forEach(function (s, i) {
   var cell = CELLS[i], R = buildRoom(i, cell[0], cell[1], esc(s.domain) + '<span class="dot" id="pno-ld-' + i + '"></span>', s.color);
   R.monitors = [];
-  for (var k = 0; k < 5; k++) { var d = mk('desk', { left: px(19 + k * 74), top: px(28) }, R.el); R.monitors.push(mk('monitor', {}, d, '<i></i>')); }
+  for (var k = 0; k < NA; k++) { var d = mk('desk', { left: px(DX0 + k * DSTEP), top: px(28) }, R.el); R.monitors.push(mk('monitor', {}, d, '<i></i>')); }
   mk('rug', { left: px(16), top: px(108), width: px(362), height: px(104), borderColor: s.color }, R.el);
   mk('plant', { left: px(372), top: px(198) }, R.el);
   R.label.addEventListener('click', function () { showSite(i); });
 });
 var MI = N;
 var MR = buildRoom(MI, MEET_CELL[0], MEET_CELL[1], 'ห้องประชุม · มุมกาแฟ', '#8b949e', true);
-mk('table', { left: px(96), top: px(30), width: px(200), height: px(50) }, MR.el, '<span id="pno-tableTxt">' + N + ' เว็บ · ' + (N * 5) + ' งาน</span>');
+mk('table', { left: px(96), top: px(30), width: px(200), height: px(50) }, MR.el, '<span id="pno-tableTxt">' + N + ' เว็บ · ' + NTASK + ' งาน</span>');
 mk('coffee', { left: px(352), top: px(18) }, MR.el);
 mk('coffeeLabel', { left: px(340), top: px(62) }, MR.el, '☕ กาแฟ');
 mk('plant', { left: px(10), top: px(198) }, MR.el);
@@ -115,7 +121,7 @@ SITES.forEach(function (s, si) {
     var a = {
       id: s.id + '-' + d.key, site: s, si: si, ci: ci, d: d, status: d.status, home: si, room: si, trip: 0, busy: false,
       hair: HAIR[(si * 5 + ci * 3) % HAIR.length], skin: SKIN[(si + ci) % SKIN.length],
-      seat: { x: R.x + 19 + ci * 74 + 17, y: R.y + 52 }, rugSpot: { x: R.x + 50 + ci * 68, y: R.y + 150 }
+      seat: { x: R.x + DX0 + ci * DSTEP + 17, y: R.y + 52 }, rugSpot: { x: R.x + 50 + ci * RSTEP, y: R.y + 150 }
     };
     var el = mk('agent', {});
     el.innerHTML = '<div class="body">' + sprite(d.shirt, a.hair, a.skin) + '</div><div class="mark">!</div><div class="z">z</div><div class="tag"></div>';
@@ -194,11 +200,11 @@ meetBtn.onclick = function () { meeting ? endMeeting() : startMeeting(); };
 async function startMeeting() {
   meeting = true; meetBtn.textContent = 'เลิกประชุม'; meetBtn.classList.add('on');
   document.getElementById('pno-side').innerHTML = '<h3>ประชุมรายงานผล</h3><p class="empty">รอทุกคนเดินมาที่ห้องประชุม…</p>';
-  var perRow = 10, rowsNeeded = Math.ceil(agents.length / perRow), rowH = Math.min(33, Math.floor(130 / Math.max(1, rowsNeeded - 1 || 1)));
+  var perRow = Math.max(10, Math.ceil(agents.length / 4)), colW = Math.min(38, Math.floor(370 / perRow)), rowsNeeded = Math.ceil(agents.length / perRow), rowH = Math.min(33, Math.floor(130 / Math.max(1, rowsNeeded - 1 || 1)));
   var walks = agents.map(function (a, i) {
     a.busy = true; a.el.classList.add('meetingmode');
     var r = Math.floor(i / perRow), c = i % perRow;
-    return sleep(i * 45).then(function () { return meeting && go(a, MI, MR.x + 14 + c * 38, MR.y + 92 + r * rowH); });
+    return sleep(i * 45).then(function () { return meeting && go(a, MI, MR.x + 14 + c * colW, MR.y + 92 + r * rowH); });
   });
   await Promise.all(walks); if (!meeting) return;
   document.getElementById('pno-tableTxt').textContent = 'กำลังรายงาน…';
@@ -206,11 +212,11 @@ async function startMeeting() {
   for (var i = 0; i < SITES.length; i++) {
     if (!meeting) return;
     var s = SITES[i], team = agents.filter(function (a) { return a.site === s; }), bad = team.filter(function (a) { return a.status !== 'ok'; });
-    if (!bad.length) say(team[0], s.domain + ': ปกติครบ 5 ✓', 2600);
+    if (!bad.length) say(team[0], s.domain + ': ปกติครบ ' + team.length + ' ✓', 2600);
     else bad.forEach(function (a, k) { setTimeout(function () { if (meeting) say(a, a.d.sh, 2600, a.status); }, k * 500); });
     await sleep(1400);
   }
-  document.getElementById('pno-tableTxt').textContent = N + ' เว็บ · ' + (N * 5) + ' งาน';
+  document.getElementById('pno-tableTxt').textContent = N + ' เว็บ · ' + NTASK + ' งาน';
 }
 function endMeeting() {
   meeting = false; meetBtn.textContent = '📣 เรียกประชุม'; meetBtn.classList.remove('on');
@@ -221,7 +227,7 @@ function renderReport() {
   var side = document.getElementById('pno-side');
   side.innerHTML = '<h3>ประชุมรายงานผล</h3>' + SITES.map(function (s, i) {
     var team = agents.filter(function (a) { return a.site === s; }), bad = team.filter(function (a) { return a.status !== 'ok'; });
-    var txt = bad.length ? bad.map(function (a) { return a.d.name + ': ' + a.d.sh.replace(/!|zz/g, '').trim(); }).join(' · ') : 'ปกติครบ 5 งาน';
+    var txt = bad.length ? bad.map(function (a) { return a.d.name + ': ' + a.d.sh.replace(/!|zz/g, '').trim(); }).join(' · ') : 'ปกติครบ ' + team.length + ' งาน';
     return '<div class="siteRow"><button type="button" data-i="' + i + '"><span class="dot ' + worstOf(team) + '"></span><span class="n">' + esc(s.id) + '</span><span class="v">' + esc(txt) + '</span></button></div>';
   }).join('');
   side.querySelectorAll('button[data-i]').forEach(function (b) { b.onclick = function () { showSite(+b.dataset.i); }; });
@@ -257,9 +263,21 @@ function showAgent(a, scroll) {
     '<div class="dhead"><div class="avatar">' + sprite(d.shirt, a.hair, a.skin, 5) + '</div><div><div class="nm">' + esc(d.name) + '<span class="chip ' + d.status + '">' + STATUS_TH[d.status] + '</span></div>' +
     '<div class="st">แผนก <a href="' + esc(a.site.url) + '" target="_blank" rel="noopener">' + esc(a.site.domain) + '</a> · ' + esc(d.role) + '</div></div></div>' +
     '<dl class="kv"><dt>ผลล่าสุด</dt><dd>' + esc(d.value) + '</dd><dt>เกณฑ์</dt><dd>' + esc(d.rule) + '</dd><dt>ข้อมูลเมื่อ</dt><dd>' + ago(d.last) + '</dd><dt>รอบการรัน</dt><dd>' + esc(d.sched) + '</dd>' + extra + '</dl>' +
+    proofHTML(d) +
     '<div class="hist"><small>7 วันล่าสุด (' + esc(unit) + ')</small><br>' + histSVG(a) + '</div>' +
     (d.status === 'ok' ? '' : '<div class="todo"><b>ควรทำ:</b> ' + esc(d.status === 'wait' && !d.stale ? (d.todo || 'รอรอบถัดไป') : d.todo) + '</div>');
   if (scroll) document.getElementById('pno-outer').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function proofHTML(d) {
+  if (d.key !== 'proof' || !d.pages || !d.pages.length) return '';
+  return '<div class="proof">' + d.pages.map(function (p) {
+    var t = esc(p.title || p.url || 'ไม่มีชื่อหน้า');
+    var head = p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + t + ' ↗</a>' : t;
+    return '<div class="pg"><div class="pt">' + head + '</div><ul>' + p.issues.map(function (x) {
+      return '<li class="' + (x.sure ? 'sure' : 'maybe') + '"><span class="w">' + esc(x.wrong) + '</span> → <span class="f">' + esc(x.fix) + '</span>' +
+        (x.sure ? '' : ' <span class="q">น่าสงสัย</span>') + (x.context ? '<div class="c">“' + esc(x.context) + '”</div>' : '') + '</li>';
+    }).join('') + '</ul></div>';
+  }).join('') + '</div>';
 }
 function showSite(i) {
   shownSite = i;
@@ -309,12 +327,12 @@ async function refresh() {
   try {
     var st = await BOOT.fetchState();
     if (!st || st.generated === STATE.generated) { renderOffline(); return; }
-    var same = st.sites.length === SITES.length && st.sites.every(function (s, i) { return s.id === SITES[i].id; });
+    var same = st.sites.length === SITES.length && st.sites.every(function (s, i) { return s.id === SITES[i].id && (s.agents || []).length === (SITES[i].agents || []).length; });
     if (!same) { location.reload(); return; }
     STATE = st;
     st.sites.forEach(function (s, si) {
       s.agents.forEach(function (d, ci) {
-        var a = agents[si * 5 + ci], wasWait = a.status === 'wait';
+        var a = agents.find(function (x) { return x.si === si && x.ci === ci; }); if (!a) return; var wasWait = a.status === 'wait';
         a.d = d; applyAgent(a);
         if (!meeting && !a.busy && wasWait !== (a.status === 'wait')) goHome(a);
         settle(a);
