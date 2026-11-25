@@ -16,7 +16,7 @@ var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms);
 app.innerHTML =
   '<div class="pno-inner">' +
   '<h1>ออฟฟิศดูแลเว็บของ P\'Neung</h1>' +
-  '<p class="sub">แต่ละเว็บคือหนึ่งแผนก มีน้อง 6 ตัวคอยเช็กว่าเว็บเปิดได้ไหม SSL ใกล้หมดหรือยัง เว็บเร็วแค่ไหน มีปลั๊กอินรออัปเดตกี่ตัว แบ็กอัปล่าสุดเมื่อไร และหน้าใหม่มีคำผิดไหม กดที่น้องเพื่อดูงาน กดป้ายห้องเพื่อดูภาพรวมของเว็บ หรือเรียกประชุมให้ทุกคนมารายงาน · <span id="pno-who"></span> <a href="#" id="pno-logout">ออกจากระบบ</a></p>' +
+  '<p class="sub">แต่ละเว็บคือหนึ่งแผนก มีน้องหลายตัวคอยเช็กว่าเว็บเปิดได้ไหม SSL และโดเมนใกล้หมดหรือยัง เว็บเร็วแค่ไหน มีปลั๊กอินรออัปเดตกี่ตัว แบ็กอัปล่าสุดเมื่อไร และหน้าใหม่มีคำผิดไหม กดที่น้องเพื่อดูงาน กดป้ายห้องเพื่อดูภาพรวมของเว็บ หรือเรียกประชุมให้ทุกคนมารายงาน · <span id="pno-who"></span> <a href="#" id="pno-logout">ออกจากระบบ</a></p>' +
   '<div class="alert" id="pno-offline" style="display:none;border-left-color:#8b949e;background:#1c2128"></div>' +
   '<div class="rainbow" id="pno-rainbow"></div>' +
   '<div class="bar" id="pno-stats"></div>' +
@@ -32,14 +32,17 @@ var SITES = STATE.sites;
 var N = SITES.length;
 
 /* ---------- ผัง ---------- */
-var COLS = [30, 460, 890], RW = 400, RH = 230, SPEED = 150;
-var NROWS = Math.max(1, Math.ceil((N + 1) / 3));
-var ROWS = []; for (var r = 0; r < NROWS; r++) ROWS.push(160 + r * 260);
-var MAP_W = 1320, MAP_H = ROWS[NROWS - 1] + RH + 40;
-/* จำนวนโต๊ะต่อห้อง = จำนวนน้องมากสุดของเว็บใด ๆ (เดิมล็อกไว้ 5) */
+var COLS = [30, 460, 890], RW = 400, SPEED = 150;
+/* จำนวนโต๊ะต่อห้อง = จำนวนน้องมากสุดของเว็บใด ๆ · เกิน 6 ตัวแบ่งเป็นโต๊ะ 2 แถว (รองรับถึง 12) */
 var NA = Math.max(1, SITES.reduce(function (m, s) { return Math.max(m, (s.agents || []).length); }, 0));
-var DSTEP = NA > 1 ? Math.min(74, Math.floor((RW - 30 - 58) / (NA - 1))) : 0;
-var DX0 = Math.round((RW - 6 - (DSTEP * (NA - 1) + 58)) / 2);
+var DROWS = NA > 6 ? 2 : 1, PERROW = Math.ceil(NA / DROWS);
+var RH = DROWS === 2 ? 300 : 230;
+var DESK_Y = [28, 110], RUG_TOP = DROWS === 2 ? 190 : 108, RUG_H = DROWS === 2 ? RH - RUG_TOP - 22 : 104;
+var NROWS = Math.max(1, Math.ceil((N + 1) / 3));
+var ROWS = []; for (var r = 0; r < NROWS; r++) ROWS.push(160 + r * (RH + 30));
+var MAP_W = 1320, MAP_H = ROWS[NROWS - 1] + RH + 40;
+var DSTEP = PERROW > 1 ? Math.min(74, Math.floor((RW - 30 - 58) / (PERROW - 1))) : 0;
+var DX0 = Math.round((RW - 6 - (DSTEP * (PERROW - 1) + 58)) / 2);
 var RSTEP = NA > 1 ? Math.min(68, Math.floor(300 / (NA - 1))) : 0;
 var NTASK = SITES.reduce(function (m, s) { return m + (s.agents || []).length; }, 0);
 map.style.height = px(MAP_H);
@@ -83,7 +86,7 @@ ROWS.forEach(function (y) { mk('floorline', { left: px(20), width: px(1280), top
 var ROOMS = [];
 function buildRoom(i, col, row, title, color, meeting) {
   var x = COLS[col], y = ROWS[row];
-  var el = mk('room' + (meeting ? ' meeting' : ''), { left: px(x), top: px(y), borderTopColor: color });
+  var el = mk('room' + (meeting ? ' meeting' : ''), { left: px(x), top: px(y), height: px(RH), borderTopColor: color });
   var R = { x: x, y: y, w: RW, h: RH, col: col, row: row, el: el };
   R.label = mk('label', { borderLeftColor: color }, el, title);
   ROOMS[i] = R; return R;
@@ -91,9 +94,9 @@ function buildRoom(i, col, row, title, color, meeting) {
 SITES.forEach(function (s, i) {
   var cell = CELLS[i], R = buildRoom(i, cell[0], cell[1], esc(s.domain) + '<span class="dot" id="pno-ld-' + i + '"></span>', s.color);
   R.monitors = [];
-  for (var k = 0; k < NA; k++) { var d = mk('desk', { left: px(DX0 + k * DSTEP), top: px(28) }, R.el); R.monitors.push(mk('monitor', {}, d, '<i></i>')); }
-  mk('rug', { left: px(16), top: px(108), width: px(362), height: px(104), borderColor: s.color }, R.el);
-  mk('plant', { left: px(372), top: px(198) }, R.el);
+  for (var k = 0; k < NA; k++) { var d = mk('desk', { left: px(DX0 + (k % PERROW) * DSTEP), top: px(DESK_Y[Math.floor(k / PERROW)]) }, R.el); R.monitors.push(mk('monitor', {}, d, '<i></i>')); }
+  mk('rug', { left: px(16), top: px(RUG_TOP), width: px(362), height: px(RUG_H), borderColor: s.color }, R.el);
+  mk('plant', { left: px(372), top: px(RH - 32) }, R.el);
   R.label.addEventListener('click', function () { showSite(i); });
 });
 var MI = N;
@@ -101,7 +104,7 @@ var MR = buildRoom(MI, MEET_CELL[0], MEET_CELL[1], 'ห้องประชุ�
 mk('table', { left: px(96), top: px(30), width: px(200), height: px(50) }, MR.el, '<span id="pno-tableTxt">' + N + ' เว็บ · ' + NTASK + ' งาน</span>');
 mk('coffee', { left: px(352), top: px(18) }, MR.el);
 mk('coffeeLabel', { left: px(340), top: px(62) }, MR.el, '☕ กาแฟ');
-mk('plant', { left: px(10), top: px(198) }, MR.el);
+mk('plant', { left: px(10), top: px(RH - 32) }, MR.el);
 MR.label.addEventListener('click', function () { if (!meeting) startMeeting(); });
 
 /* ---------- ตัวละคร ---------- */
@@ -121,7 +124,7 @@ SITES.forEach(function (s, si) {
     var a = {
       id: s.id + '-' + d.key, site: s, si: si, ci: ci, d: d, status: d.status, home: si, room: si, trip: 0, busy: false,
       hair: HAIR[(si * 5 + ci * 3) % HAIR.length], skin: SKIN[(si + ci) % SKIN.length],
-      seat: { x: R.x + DX0 + ci * DSTEP + 17, y: R.y + 52 }, rugSpot: { x: R.x + 50 + ci * RSTEP, y: R.y + 150 }
+      seat: { x: R.x + DX0 + (ci % PERROW) * DSTEP + 17, y: R.y + DESK_Y[Math.floor(ci / PERROW)] + 24 }, rugSpot: { x: R.x + 50 + ci * RSTEP, y: R.y + RUG_TOP + 42 }
     };
     var el = mk('agent', {});
     el.innerHTML = '<div class="body">' + sprite(d.shirt, a.hair, a.skin) + '</div><div class="mark">!</div><div class="z">z</div><div class="tag"></div>';
@@ -180,7 +183,7 @@ setInterval(async function () {
   if (Math.random() < .4) { say(a, CHAT[Math.floor(Math.random() * CHAT.length)]); return; }
   a.busy = true;
   var coffee = Math.random() < .6, R = coffee ? MR : ROOMS[a.home];
-  var tx = coffee ? R.x + 300 + Math.random() * 44 : R.x + 40 + Math.random() * 320, ty = coffee ? R.y + 44 + Math.random() * 22 : R.y + 118 + Math.random() * 50;
+  var tx = coffee ? R.x + 300 + Math.random() * 44 : R.x + 40 + Math.random() * 320, ty = coffee ? R.y + 44 + Math.random() * 22 : R.y + RUG_TOP + 10 + Math.random() * Math.max(10, RUG_H - 46);
   if (await go(a, coffee ? MI : a.home, tx, ty)) {
     say(a, coffee ? (Math.random() < .5 ? 'กาแฟไหม?' : 'เติมกาแฟแป๊บ ☕') : CHAT[Math.floor(Math.random() * CHAT.length)], 3200);
     await sleep(4200); if (!meeting) await goHome(a);
@@ -200,7 +203,7 @@ meetBtn.onclick = function () { meeting ? endMeeting() : startMeeting(); };
 async function startMeeting() {
   meeting = true; meetBtn.textContent = 'เลิกประชุม'; meetBtn.classList.add('on');
   document.getElementById('pno-side').innerHTML = '<h3>ประชุมรายงานผล</h3><p class="empty">รอทุกคนเดินมาที่ห้องประชุม…</p>';
-  var perRow = Math.max(10, Math.ceil(agents.length / 4)), colW = Math.min(38, Math.floor(370 / perRow)), rowsNeeded = Math.ceil(agents.length / perRow), rowH = Math.min(33, Math.floor(130 / Math.max(1, rowsNeeded - 1 || 1)));
+  var rowsMax = Math.max(1, Math.floor((RH - 132) / 30) + 1), perRow = Math.max(10, Math.ceil(agents.length / rowsMax)), colW = Math.min(38, Math.floor(370 / perRow)), rowsNeeded = Math.ceil(agents.length / perRow), rowH = Math.min(33, Math.floor((RH - 132) / Math.max(1, rowsNeeded - 1 || 1)));
   var walks = agents.map(function (a, i) {
     a.busy = true; a.el.classList.add('meetingmode');
     var r = Math.floor(i / perRow), c = i % perRow;
