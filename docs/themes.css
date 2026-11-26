@@ -113,3 +113,11 @@
 #pno-app .ups{width:24px;height:30px;background:#2d333b;border-top:4px solid #f2c200}
 #pno-app .ups::before{content:"";position:absolute;left:4px;top:6px;width:16px;height:6px;background:#3fb950;box-shadow:0 0 4px #3fb950}
 #pno-app .ups::after{content:"";position:absolute;left:4px;top:16px;width:16px;height:2px;background:#57606a;box-shadow:0 4px 0 #57606a}
+/* คริสต์มาสริมทะเล (ใช้คู่กับ scene.js) */
+#pno-app.th-xmas .palmlights{position:absolute;height:8px;pointer-events:none;border-top:2px solid rgba(40,40,40,.5);border-radius:0 0 50% 50%;background:radial-gradient(circle,#ff5f5f 0 2px,transparent 3px) 0 2px/12px 6px repeat-x,radial-gradient(circle,#ffd33d 0 2px,transparent 3px) 4px 2px/12px 6px repeat-x,radial-gradient(circle,#58d0ff 0 2px,transparent 3px) 8px 2px/12px 6px repeat-x;animation:pno-twinkle 1.2s steps(2) infinite}
+#pno-app.th-xmas .map[data-p=night] .palmlights,#pno-app.th-xmas .map[data-p=dusk] .palmlights{filter:drop-shadow(0 0 3px #ffd33d)}
+#pno-app.th-xmas .beach-santa{position:absolute;width:30px;height:42px;z-index:3;animation:pno-float 1.6s ease-in-out infinite}
+#pno-app.th-xmas .beach-santa svg{display:block;filter:drop-shadow(0 3px 0 rgba(90,60,20,.25))}
+#pno-app.th-xmas .beach-santa .sack{position:absolute;left:30px;top:18px;width:20px;height:22px;background:#8a5f36;border-radius:8px 8px 4px 4px;box-shadow:inset 0 4px 0 #6b4426}
+#pno-app.th-xmas .beach-santa .sack::before{content:"";position:absolute;left:4px;top:-6px;width:8px;height:8px;background:#3fb950;box-shadow:6px 2px 0 #ffd33d}
+#pno-app.th-xmas .beach-santa span{position:absolute;left:50%;top:-24px;transform:translateX(-50%);white-space:nowrap;background:#fff;color:#d62828;border:2px solid #1f2328;font:600 12px Kanit,sans-serif;padding:1px 7px;border-radius:4px}

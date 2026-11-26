@@ -21,7 +21,7 @@ app.innerHTML =
   '<div class="rainbow" id="pno-rainbow"></div>' +
   '<div class="bar" id="pno-stats"></div>' +
   '<div class="alert" id="pno-alert"></div>' +
-  '<div class="mapOuter" id="pno-outer"><div class="sizer" id="pno-sizer"><div class="map" id="pno-map"></div></div></div>' +
+  '<div class="mapWrap"><div class="mapOuter" id="pno-outer"><div class="sizer" id="pno-sizer"><div class="map" id="pno-map"></div></div></div><div class="zoomCtl" id="pno-zoom"></div></div>' +
   '<p class="hint">เครื่องตรวจเช็กทุก ' + (STATE.interval_min || 10) + ' นาทีขณะเปิดเครื่อง · หน้านี้ดึงข้อมูลใหม่เองทุก ' + (BOOT.refresh || 60) + ' วินาที · หน้าต่างเปลี่ยนตามเวลากรุงเทพฯ · น้องที่มี ! คืองานที่ต้องดู · น้องที่หลับบนพรมคือรอข้อมูล</p>' +
   '<div class="panels"><div class="card" id="pno-detail"><h3>รายละเอียดงาน</h3><p class="empty">กดที่น้องตัวไหนก็ได้ในออฟฟิศ</p></div>' +
   '<div class="card" id="pno-side"><h3>ภาพรวมรายเว็บ</h3><p class="empty">กดป้ายชื่อห้อง หรือกด “เรียกประชุม” เพื่อให้ทุกคนรายงาน</p></div></div>' +
@@ -41,23 +41,42 @@ var DESK_Y = [28, 110], RUG_TOP = DROWS === 2 ? 190 : 108, RUG_H = DROWS === 2 ?
 var NROWS = Math.max(1, Math.ceil((N + 1) / 3));
 var ROWS = []; for (var r = 0; r < NROWS; r++) ROWS.push(160 + r * (RH + 30));
 var MAP_W = 1320, MAP_H = ROWS[NROWS - 1] + RH + 40;
+/* ฉากป่ารอบอาคาร (scene.js) · ไม่มีไฟล์ฉาก = หน้าตาแบบเดิม */
+var SCENE = typeof window.PNO_SCENE === 'function';
+var OX = SCENE ? 170 : 0, OY = SCENE ? 110 : 0, PADB = SCENE ? 330 : 0;
+var TW = MAP_W + OX * 2, TH = MAP_H + OY + PADB;
 var DSTEP = PERROW > 1 ? Math.min(74, Math.floor((RW - 30 - 58) / (PERROW - 1))) : 0;
 var DX0 = Math.round((RW - 6 - (DSTEP * (PERROW - 1) + 58)) / 2);
 var RSTEP = NA > 1 ? Math.min(68, Math.floor(300 / (NA - 1))) : 0;
 var NTASK = SITES.reduce(function (m, s) { return m + (s.agents || []).length; }, 0);
-map.style.height = px(MAP_H);
+map.style.width = px(TW); map.style.height = px(TH);
+var bldg = map;
+if (SCENE) {
+  map.classList.add('scene-on');
+  try { window.PNO_SCENE(map, { x: OX, y: OY, w: MAP_W, h: MAP_H, W: TW, H: TH }); } catch (e) { if (window.console) console.warn('scene', e); }
+  bldg = document.createElement('div'); bldg.className = 'bldg';
+  bldg.style.left = px(OX); bldg.style.top = px(OY); bldg.style.width = px(MAP_W); bldg.style.height = px(MAP_H);
+  map.appendChild(bldg);
+}
 var MEET_CELL = [1, Math.floor((NROWS - 1) / 2)];
 var CELLS = [];
 for (r = 0; r < NROWS; r++) for (var c = 0; c < 3; c++) { if (!(c === MEET_CELL[0] && r === MEET_CELL[1])) CELLS.push([c, r]); }
 
-function mk(cls, style, parent, html) { var e = document.createElement('div'); e.className = cls; for (var k in style) e.style[k] = style[k]; if (html) e.innerHTML = html; (parent || map).appendChild(e); return e; }
+function mk(cls, style, parent, html) { var e = document.createElement('div'); e.className = cls; for (var k in style) e.style[k] = style[k]; if (html) e.innerHTML = html; (parent || bldg).appendChild(e); return e; }
 function rnd(seed) { return function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }; }
 
 // ผนัง หน้าต่าง ป้าย
 mk('wall', {});
 var windows = [mk('window', { left: px(50) }), mk('window', { left: px(850) })];
 var lights = [];
+var SEAVIEW = SCENE && window.PNO_SCENE.view === 'sea';
 windows.forEach(function (w, wi) {
+  if (SEAVIEW) {  // วิวทะเล: ท้องฟ้า เมฆ ดวงอาทิตย์/ดวงจันทร์ ทะเล เรือ
+    w.classList.add('seaview');
+    w.innerHTML = '<i class="stars"></i>' + (wi === 0 ? '<i class="sun"></i>' : '') + '<i class="cloud c1"></i><i class="cloud c2"></i>' +
+      '<div class="sea"></div>' + (wi === 0 ? '<i class="isle"></i>' : '<i class="wboat"></i>') + '<i class="glint"></i>';
+    return;
+  }
   var R = rnd(7 + wi * 31), x = 0;
   while (x < 410) {
     var bw = 26 + Math.floor(R() * 34), bh = 30 + Math.floor(R() * 60);
@@ -69,7 +88,7 @@ windows.forEach(function (w, wi) {
   }
 });
 mk('shelf', { left: px(484) }); mk('shelf', { left: px(818) });
-mk('sign', {}, map, '<b>WEB P\'NEUNG</b><span id="pno-clock">--:--</span><div class="strip">' + SITES.map(function (s) { return '<i style="background:' + esc(s.color) + '"></i>'; }).join('') + '</div>');
+mk('sign', {}, bldg, '<b>WEB P\'NEUNG</b><span id="pno-clock">--:--</span><div class="strip">' + SITES.map(function (s) { return '<i style="background:' + esc(s.color) + '"></i>'; }).join('') + '</div>');
 function skyUpdate() {
   var f = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' }).format(new Date());
   var h = +f.slice(0, 2); document.getElementById('pno-clock').textContent = 'กรุงเทพฯ ' + f + ' น.';
@@ -78,6 +97,7 @@ function skyUpdate() {
   else if (h >= 8 && h < 17) { sky = 'linear-gradient(#7fb8f5,#cfe8ff)'; bld = '#6f84a3'; lit = '#dbe9ff'; p = .15; }
   else if (h >= 17 && h < 19) { sky = 'linear-gradient(#ff9e6d,#6b5b95)'; bld = '#3f4a63'; lit = '#ffd46b'; p = .4; }
   else { sky = 'linear-gradient(#0b1d3a,#1e2f5a)'; bld = '#1b2436'; lit = '#ffd46b'; p = .6; }
+  map.dataset.p = (h >= 6 && h < 8) ? 'dawn' : (h >= 8 && h < 17) ? 'day' : (h >= 17 && h < 19) ? 'dusk' : 'night';
   windows.forEach(function (w) { w.style.background = sky; w.querySelectorAll('.bld').forEach(function (b) { b.style.background = bld; }); });
   lights.forEach(function (l) { l.style.background = (+l.dataset.r < p) ? lit : 'rgba(0,0,0,.18)'; });
 }
@@ -269,7 +289,7 @@ function showAgent(a, scroll) {
     proofHTML(d) +
     '<div class="hist"><small>7 วันล่าสุด (' + esc(unit) + ')</small><br>' + histSVG(a) + '</div>' +
     (d.status === 'ok' ? '' : '<div class="todo"><b>ควรทำ:</b> ' + esc(d.status === 'wait' && !d.stale ? (d.todo || 'รอรอบถัดไป') : d.todo) + '</div>');
-  if (scroll) document.getElementById('pno-outer').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (scroll) { centerOn(a); document.getElementById('pno-outer').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 }
 function proofHTML(d) {
   if (d.key !== 'proof' || !d.pages || !d.pages.length) return '';
@@ -312,7 +332,8 @@ function renderHeader() {
   al.innerHTML = '<h2>ต้องดูวันนี้</h2><div class="list">' + (issues.length ? issues.map(function (a) {
     return '<button type="button" class="issue" data-id="' + esc(a.id) + '"><span class="dot ' + a.status + '"></span><span class="who">' + esc(a.d.name) + ' · ' + esc(a.site.domain) + '</span> — ' + esc(a.d.value) + '</button>';
   }).join('') : '<span>ไม่มีงานที่ต้องดู ทุกเว็บปกติ ✓</span>') + '</div>';
-  al.style.borderLeftColor = issues.some(function (a) { return a.status === 'down'; }) ? 'var(--down)' : issues.length ? 'var(--warn)' : 'var(--ok)';
+  var pb = zc && zc.querySelector('.prob'); if (pb) { pb.disabled = !issues.length; pb.classList.toggle('down', issues.some(function (a) { return a.status === 'down'; })); }
+  al.style.borderLeftColor =issues.some(function (a) { return a.status === 'down'; }) ? 'var(--down)' : issues.length ? 'var(--warn)' : 'var(--ok)';
   al.querySelectorAll('.issue').forEach(function (b) { b.onclick = function () { showAgent(agents.find(function (a) { return a.id === b.dataset.id; }), true); }; });
 }
 function applyFilter() { agents.forEach(function (a) { a.el.classList.toggle('dim', filter !== 'all' && a.status !== filter); }); }
@@ -351,7 +372,43 @@ async function refresh() {
 
 /* ---------- ย่อผังให้พอดีจอ ---------- */
 var outer = document.getElementById('pno-outer'), sizer = document.getElementById('pno-sizer');
-function fit() { var s = Math.min(1, (outer.clientWidth - 20) / MAP_W); s = Math.max(s, .7); map.style.transform = 'scale(' + s + ')'; sizer.style.width = px(MAP_W * s); sizer.style.height = px(MAP_H * s); }
+var zoom = null;  // null = พอดีความกว้างจอ
+function autoScale() { var s = Math.min(1, (outer.clientWidth - 20) / TW); return Math.max(s, SCENE ? .42 : .7); }
+function curScale() { return zoom == null ? autoScale() : zoom; }
+function fit() { var s = curScale(); map.style.transform = 'scale(' + s + ')'; sizer.style.width = px(TW * s); sizer.style.height = px(TH * s); }
+function setZoom(z) {
+  var s0 = curScale(), cx = (outer.scrollLeft + outer.clientWidth / 2) / s0, cy = (outer.scrollTop + outer.clientHeight / 2) / s0;
+  zoom = z == null ? null : Math.max(.3, Math.min(1.6, z)); fit();
+  var s1 = curScale(); outer.scrollLeft = cx * s1 - outer.clientWidth / 2; outer.scrollTop = cy * s1 - outer.clientHeight / 2;
+}
+function centerOn(a) {
+  if (curScale() < .9) { zoom = 1; fit(); }
+  var s = curScale();
+  outer.scrollTo({ left: (OX + a.x + 12) * s - outer.clientWidth / 2 + 10, top: (OY + a.y + 18) * s - outer.clientHeight / 2 + 10, behavior: 'smooth' });
+}
+function goProblem() {
+  var bad = agents.filter(function (a) { return a.status === 'down'; });
+  if (!bad.length) bad = agents.filter(function (a) { return a.status === 'warn'; });
+  if (!bad.length) return;
+  goProblem.i = ((goProblem.i || 0) + 1) % bad.length;
+  var a = bad[goProblem.i]; centerOn(a); showAgent(a);
+}
+var zc = document.getElementById('pno-zoom');
+if (SCENE) {
+  [['+', 'ซูมเข้า', function () { setZoom(curScale() * 1.25); }], ['−', 'ซูมออก', function () { setZoom(curScale() / 1.25); }],
+   ['⤢', 'พอดีจอ', function () { setZoom(null); }], ['!', 'ไปที่น้องที่มีปัญหา', goProblem]].forEach(function (b) {
+    var e = document.createElement('button'); e.type = 'button'; e.textContent = b[0]; e.title = b[1]; e.setAttribute('aria-label', b[1]); e.onclick = b[2];
+    if (b[0] === '!') e.className = 'prob'; zc.appendChild(e);
+  });
+  // ลากเลื่อนแผนที่ด้วยเมาส์ (มือถือใช้ปัดตามปกติ)
+  var drag = null;
+  outer.addEventListener('pointerdown', function (e) {
+    if (e.pointerType !== 'mouse' || e.button !== 0 || e.target.closest('.agent,.label,button,a')) return;
+    drag = { x: e.clientX, y: e.clientY, l: outer.scrollLeft, t: outer.scrollTop }; outer.classList.add('dragging');
+  });
+  window.addEventListener('pointermove', function (e) { if (drag) { outer.scrollLeft = drag.l - (e.clientX - drag.x); outer.scrollTop = drag.t - (e.clientY - drag.y); } });
+  window.addEventListener('pointerup', function () { drag = null; outer.classList.remove('dragging'); });
+} else zc.style.display = 'none';
 window.addEventListener('resize', fit);
 document.getElementById('pno-who').textContent = BOOT.email ? 'เข้าระบบเป็น ' + BOOT.email + ' ·' : '';
 document.getElementById('pno-logout').onclick = function (e) { e.preventDefault(); if (BOOT.logout) BOOT.logout(); };

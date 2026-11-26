@@ -1,0 +1,72 @@
+/* P'Neung Office — ฉากป่ารอบออฟฟิศ (คู่กับ scene.js) */
+#pno-app .mapWrap{position:relative}
+#pno-app .map.scene-on{background:#5a9e45;border-radius:6px}
+#pno-app .map.scene-on .floorline{display:none}
+#pno-app .map .scene{position:absolute;left:0;top:0;image-rendering:pixelated;transition:filter 2s}
+#pno-app .map .bldg{position:absolute;background:repeating-linear-gradient(0deg,#c39462 0 18px,#a97b4b 18px 20px);box-shadow:0 0 0 8px #8a5f36,0 0 0 11px #5c3d22}
+/* ตัวอาคารด้านบน: ผนังไม้แทนผนังขาว */
+#pno-app .map.scene-on .wall{background:#e9dcc6;border-bottom-color:#8a5f36}
+/* กลางวัน/กลางคืน: ฉากข้างนอกมืดลง ไฟในออฟฟิศยังสว่าง */
+#pno-app .map .veil{position:absolute;inset:0;pointer-events:none;opacity:0;mix-blend-mode:multiply;transition:opacity 2s,background 2s}
+#pno-app .map[data-p=dawn] .veil{opacity:.35;background:#ffc79a}
+#pno-app .map[data-p=dusk] .veil{opacity:.55;background:#f0906a}
+#pno-app .map[data-p=night] .veil{opacity:1;background:#2b3a6e}
+#pno-app .map[data-p=night] .bldg{box-shadow:0 0 0 8px #8a5f36,0 0 0 11px #5c3d22,0 0 60px 20px rgba(255,214,120,.18)}
+#pno-app .lamp-post{position:absolute;width:6px;height:22px;background:#3a332c;pointer-events:none}
+#pno-app .lamp-post::before{content:"";position:absolute;left:-3px;top:-8px;width:12px;height:10px;background:#ffe28a;border:2px solid #3a332c}
+#pno-app .map[data-p=night] .lamp-post::after,#pno-app .map[data-p=dusk] .lamp-post::after{content:"";position:absolute;left:-27px;top:-30px;width:60px;height:54px;border-radius:50%;background:radial-gradient(rgba(255,226,138,.55),transparent 70%)}
+#pno-app .ripple{position:absolute;width:12px;height:3px;background:#d4ecff;opacity:0;pointer-events:none;animation:pno-ripple 4s steps(4) infinite}
+@keyframes pno-ripple{30%{opacity:.9}60%{opacity:0;transform:translateX(9px)}}
+#pno-app .scene-sign{position:absolute;background:#7a4f2a;border:3px solid #4a2f18;color:#fff3d6;padding:4px 10px 5px;text-align:center;line-height:1.2;pointer-events:none;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+#pno-app .scene-sign b{display:block;font-family:Kanit,sans-serif;font-weight:500;font-size:15px}
+#pno-app .scene-sign span{font-family:Audiowide,Kanit,sans-serif;font-size:10px;letter-spacing:1px;color:#f2c98a}
+#pno-app .scene-sign::after{content:"";position:absolute;left:50%;bottom:-17px;width:6px;height:14px;margin-left:-3px;background:#4a2f18}
+/* แผนที่เลื่อน/ซูมได้ */
+#pno-app .map.scene-on{cursor:grab}
+#pno-app .mapOuter:has(.scene-on){max-height:82vh;overflow:auto}
+#pno-app .mapOuter.dragging,#pno-app .mapOuter.dragging .map{cursor:grabbing}
+#pno-app .zoomCtl{position:absolute;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:5}
+#pno-app .zoomCtl button{width:42px;height:42px;border-radius:50%;background:#1f2a1f;border:3px solid #0f160f;color:#fff;font:700 20px/1 Kanit,sans-serif;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+#pno-app .zoomCtl button:hover{background:#2d3d2d}
+#pno-app .zoomCtl button.prob{background:#9a6700;border-color:#5c3d00}
+#pno-app .zoomCtl button.prob.down{background:#b62324;border-color:#6e1415;animation:pno-float 1s ease-in-out infinite}
+#pno-app .zoomCtl button:disabled{opacity:.35;cursor:default;animation:none}
+
+/* ---------- ทะเล ---------- */
+#pno-app .map.scene-on{background:#f0d9a0}
+#pno-app .map.scene-on .wall{background:#fdf6e6;border-bottom-color:#8a5f36}
+#pno-app .foam{position:absolute;width:42px;height:4px;background:#fff;opacity:0;pointer-events:none;animation:pno-foam 5s ease-in-out infinite}
+@keyframes pno-foam{0%{opacity:0;transform:translateY(14px)}40%{opacity:.95}80%{opacity:0;transform:translateY(-6px)}100%{opacity:0}}
+#pno-app .gull{position:absolute;width:14px;height:6px;pointer-events:none;animation:pno-gull 18s linear infinite}
+#pno-app .gull::before,#pno-app .gull::after{content:"";position:absolute;top:0;width:7px;height:3px;background:#3a3a3a;animation:pno-flap .6s steps(2) infinite}
+#pno-app .gull::before{left:0;transform:skewY(25deg)}
+#pno-app .gull::after{left:7px;transform:skewY(-25deg)}
+@keyframes pno-gull{from{transform:translateX(-120px)}to{transform:translateX(560px)}}
+@keyframes pno-flap{50%{top:3px}}
+/* วิวทะเลในหน้าต่าง */
+#pno-app .window.seaview>i,#pno-app .window.seaview>div{position:absolute;display:block}
+#pno-app .seaview .sea{left:0;right:0;bottom:0;height:40%;background:repeating-linear-gradient(0deg,transparent 0 6px,rgba(255,255,255,.22) 6px 8px),linear-gradient(#3fb5e0,#1f7fbf);background-size:40px 8px,auto;animation:pno-sea 3s steps(5) infinite}
+@keyframes pno-sea{to{background-position:40px 0,0 0}}
+#pno-app .seaview .sun{width:26px;height:26px;left:70px;top:14px;background:#ffe066;border-radius:50%;box-shadow:0 0 0 5px rgba(255,224,102,.35);transition:all 2s}
+#pno-app .seaview .glint{left:58px;bottom:6px;width:46px;height:3px;background:#fff7c2;opacity:.7;box-shadow:6px -9px 0 -0px rgba(255,247,194,.6),-4px -18px 0 0 rgba(255,247,194,.5)}
+#pno-app .seaview .cloud{height:10px;background:#fff;box-shadow:8px -6px 0 #fff,20px 0 0 #fff;animation:pno-cloud 60s linear infinite}
+#pno-app .seaview .cloud.c1{width:26px;top:18px;left:-40px}
+#pno-app .seaview .cloud.c2{width:18px;top:34px;left:-40px;animation-duration:85s;animation-delay:-40s;opacity:.85}
+@keyframes pno-cloud{to{transform:translateX(480px)}}
+#pno-app .seaview .isle{right:40px;bottom:38%;width:60px;height:9px;background:#3b8a4a;border-radius:30px 30px 0 0}
+#pno-app .seaview .isle::after{content:"";position:absolute;left:24px;top:-12px;width:3px;height:12px;background:#6b4423;box-shadow:-5px -3px 0 1px #2f9a46,5px -3px 0 1px #2f9a46}
+#pno-app .seaview .wboat{left:110px;bottom:34%;width:22px;height:6px;background:#c0392b;animation:pno-bob 2.4s ease-in-out infinite}
+#pno-app .seaview .wboat::after{content:"";position:absolute;left:9px;top:-16px;border-left:12px solid #fff;border-top:16px solid transparent}
+#pno-app .seaview .stars{inset:0;opacity:0;transition:opacity 2s;background:radial-gradient(#fff 1px,transparent 1.5px) 0 0/37px 23px,radial-gradient(#fff 1px,transparent 1.5px) 13px 9px/53px 31px}
+/* สีตามเวลา */
+#pno-app .map[data-p=dawn] .seaview .sun{top:44px;background:#ffb36b;box-shadow:0 0 0 6px rgba(255,179,107,.35)}
+#pno-app .map[data-p=dawn] .seaview .sea{background-color:#4a8fc0}
+#pno-app .map[data-p=dusk] .seaview .sun{top:50px;width:32px;height:32px;background:#ff8a4c;box-shadow:0 0 0 7px rgba(255,138,76,.35)}
+#pno-app .map[data-p=dusk] .seaview .sea,#pno-app .map[data-p=dawn] .seaview .sea{background-image:repeating-linear-gradient(0deg,transparent 0 6px,rgba(255,200,150,.25) 6px 8px),linear-gradient(#e08a6a,#2d5f96)}
+#pno-app .map[data-p=dusk] .seaview .glint,#pno-app .map[data-p=dawn] .seaview .glint{background:#ffb36b}
+#pno-app .map[data-p=night] .seaview .sun{background:#f4f1de;box-shadow:0 0 0 4px rgba(244,241,222,.18);width:20px;height:20px}
+#pno-app .map[data-p=night] .seaview .sea{background-image:repeating-linear-gradient(0deg,transparent 0 6px,rgba(180,200,255,.15) 6px 8px),linear-gradient(#1d3866,#0b1a33)}
+#pno-app .map[data-p=night] .seaview .stars{opacity:.9}
+#pno-app .map[data-p=night] .seaview .cloud{opacity:.15}
+#pno-app .map[data-p=night] .seaview .glint{background:#e8ecff;opacity:.4}
+#pno-app .map[data-p=dusk] .seaview .sun{top:36px}
